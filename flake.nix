@@ -9,8 +9,8 @@
   outputs = { self, ... }@inputs:
     with inputs;
     {
-      nixosModules.pops = import ./module.nix;
-      nixosModule = self.nixosModules.pops;
+      nixosModules.lollypops = import ./module.nix;
+      nixosModule = self.nixosModules.lollypops;
     } //
 
     # All packages in the ./packages subfolder are also added to the flake.
@@ -18,7 +18,8 @@
     # system. This works as all packages are compatible with all architectures
     (flake-utils.lib.eachSystem [ "aarch64-linux" "i686-linux" "x86_64-linux" ])
       (system:
-        let pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
         in
         rec {
           # Allow custom packages to be run using `nix run`
@@ -29,22 +30,23 @@
                   "echo 'Deploying ${x.name} to ${x.path}'"
                   # Remove if already
                   ''
-                    ssh ${config.pops.deployment.user}@${config.pops.deployment.host} "rm -f ${x.path}"
+                    ssh ${config.lollypops.deployment.user}@${config.lollypops.deployment.host} "rm -f ${x.path}"
                   ''
                   # Copy file
                   ''
-                    ${x.cmd} | ssh ${config.pops.deployment.user}@${config.pops.deployment.host} "umask 077; cat > ${x.path}"
+                    ${x.cmd} | ssh ${config.lollypops.deployment.user}@${config.lollypops.deployment.host} "umask 077; cat > ${x.path}"
                   ''
                   # Set group and owner
                   ''
-                    ssh ${config.pops.deployment.user}@${config.pops.deployment.host} "chown ${x.owner}:${x.group-name} ${x.path}"
+                    ssh ${config.lollypops.deployment.user}@${config.lollypops.deployment.host} "chown ${x.owner}:${x.group-name} ${x.path}"
                   ''
                 ])
-                (builtins.attrValues config.pops.secrets.files));
+                (builtins.attrValues config.lollypops.secrets.files));
 
             in
             {
-              default =
+
+              default = { nixosConfigurations, ... }:
                 let
 
                   mkTaskFileForHost = hostConfig: pkgs.writeText "CommonTasks.yml"
@@ -108,25 +110,25 @@
                             taskfile = mkTaskFileForHost value;
                             vars.HOST = name;
                           })
-                        self.nixosConfigurations;
+                        nixosConfigurations;
 
-                      tasks = {
-
-                        # Define grouped tasks, e.g. running all tasks for one
-                        # host. E.g. to make a complete deployment with:
-                        # `nix run '.' -- provision-ahorn
-
-                        provision-ahorn = {
-                          cmds = [
-                            # { task = "ahorn:greet"; }
-                            { task = "ahorn:deploy-flake"; }
-                            {
-                              task = "ahorn:deploy-secrets";
-                            }
-                            { task = "ahorn:rebuild"; }
-                          ];
-                        };
-                      };
+                      # Define grouped tasks to run all tasks for one host.
+                      # E.g. to make a complete deployment for host "server01":
+                      # `nix run '.' -- server01
+                      tasks = builtins.mapAttrs
+                        (name: value:
+                          {
+                            cmds = [
+                              # TODO make these configurable
+                              # { task = "ahorn:greet"; }
+                              { task = "${name}:deploy-flake"; }
+                              {
+                                task = "${name}:deploy-secrets";
+                              }
+                              { task = "${name}:rebuild"; }
+                            ];
+                          })
+                        nixosConfigurations;
                     });
                 in
                 flake-utils.lib.mkApp

@@ -3,7 +3,7 @@
 with lib;
 
 let
-  cfg = config.pops;
+  cfg = config.lollypops;
 
   secret-file = types.submodule ({ config, ... }: {
     options = {
@@ -49,7 +49,7 @@ let
 in
 {
 
-  options.pops = {
+  options.lollypops = {
     secrets = {
       files = mkOption {
         type = with types; attrsOf secret-file;
