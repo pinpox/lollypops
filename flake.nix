@@ -1,5 +1,5 @@
 {
-  description = "A very basic flake";
+  description = "Lollypops - Lollypop Operations Deployment Tool";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
@@ -13,9 +13,7 @@
       nixosModule = self.nixosModules.lollypops;
     } //
 
-    # All packages in the ./packages subfolder are also added to the flake.
-    # flake-utils is used for this part to make each package available for each
-    # system. This works as all packages are compatible with all architectures
+    # TODO test/add other plattforms
     (flake-utils.lib.eachSystem [ "aarch64-linux" "i686-linux" "x86_64-linux" ])
       (system:
         let
@@ -99,11 +97,10 @@
                     "Taskfile.yml"
                     (builtins.toJSON {
                       version = "3";
-                      # Import the takes once for each host, setting the HOST
-                      # variable. This allows running them as `host:task` for
-                      # each host individually. Available hostnames are take form
-                      # the ./machines directory
 
+                      # Import the taks once for each host, setting the HOST
+                      # variable. This allows running them as `host:task` for
+                      # each host individually.
                       includes = builtins.mapAttrs
                         (name: value:
                           {
@@ -119,7 +116,7 @@
                         (name: value:
                           {
                             cmds = [
-                              # TODO make these configurable
+                              # TODO make these configurable, set these three as default in the module
                               # { task = "ahorn:greet"; }
                               { task = "${name}:deploy-flake"; }
                               {
