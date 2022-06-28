@@ -25,23 +25,23 @@
             let
               mkSeclist = config: pkgs.lib.lists.flatten (map
                 (x: [
-                  "echo 'Deploying ${x.name} to ${x.path}'"
+                  "echo 'Deploying ${x.name}'" # to ${x.path}'"
                   # Remove if already
-                  ''
-                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "rm -f ${x.path}"
-                  ''
+                  # ''
+                  #   ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "rm -f ${x.path}"
+                  # ''
                   # Create directory if it does not exist
                   ''
-                   ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} mkdir -p "$(dirname "${x.path}")" -m 0750
+                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 750; mkdir -p "$(dirname "{{.REMOTE_SECRETS_DIR}}/${pkgs.lib.escapeShellArg x.name}")"'
                   ''
                   # Copy file
                   ''
-                    ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${x.path}"
+                    ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 750; cat > {{.REMOTE_SECRETS_DIR}}/${pkgs.lib.escapeShellArg x.name}"
                   ''
                   # Set group and owner
-                  ''
-                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${x.owner}:${x.group-name} ${x.path}"
-                  ''
+                  # ''
+                  #   ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${x.owner}:${x.group-name} ${x.path}"
+                  # ''
                 ])
                 (builtins.attrValues config.lollypops.secrets.files));
 
@@ -60,6 +60,7 @@
                         REMOTE_USER = deployment.user;
                         REMOTE_HOST = deployment.host;
                         REMOTE_CONFIG_DIR = deployment.config-dir;
+                        REMOTE_SECRETS_DIR = secrets.secrets-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
                         HOSTNAME = hostName;
                       };
@@ -76,6 +77,13 @@
 
                           cmds = [
                             ''echo "Deploying secrets to: {{.HOSTNAME}}"''
+                            # TODO Should we remove old dirs?
+                            # ''
+                            #   ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'rm -rf "{{.REMOTE_SECRETS_DIR}}"'
+                            # ''
+                            ''
+                              ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 750; mkdir -p "{{.REMOTE_SECRETS_DIR}}"'
+                            ''
                           ] ++ mkSeclist hostConfig.config;
 
                         };
