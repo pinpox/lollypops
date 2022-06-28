@@ -27,7 +27,7 @@ easily debuggable.
 Lollypops is inspired by [krops](https://github.com/krebs/krops)
 [colmena](https://github.com/zhaofengli/colmena).
 
-# Features
+## Features
 
 - Stateless
 - Parallel execution
@@ -39,15 +39,6 @@ Lollypops is inspired by [krops](https://github.com/krebs/krops)
 - Fully flake compatible
 
 ## Usage
-## WORK IN PROGRESS
-
-Not usable yet. Development ongoing. It may change and any time. It may destroy
-your system or burn everything to the ground.
-
-(PR's welcome)
-
-
-(did you read the above?)
 
 After configuration (see below) you will be able to run lollypops passing it one
 or more arguments to specify which tasks to run. To see what tasks are avaiable
@@ -112,48 +103,150 @@ ssh: Could not resolve hostname kartoffel: Name or service not known
 ...
 ```
 
-### Configuration
+## Configuration
+
+Add lollypops to your flake's inputs as you would for any dependency and import
+the `lollypops` module in all hosts configured in your `nixosConfigurations`.
+
+Then, use the the `apps` attribute set to expose the lollypops commands.
+Here a single parameter is requied: `configFlake`. This is the flake containing
+your `nixosConfigurations` from which lollypops will build it's task
+specifications. In most cases this will be `self` because the app configuration
+and the `nixosConfigurations` are defined in the same flake.
+
+A complete minimal example:
+
+```nix
+{
+  inputs = {
+    lollypops.url = "github:pinpox/lollypops";
+	# Other inputs ... 
+  };
+
+  outputs = { nixpkgs, lollypops, self, ... }: {
+
+    nixosConfigurations = {
+  
+      host1 = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [ 
+          lollypops.nixosModules.lollypops
+  	      ./configuration1.nix 
+  	    ];
+      };
+  
+      host2 = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [ 
+          lollypops.nixosModules.lollypops
+  	      ./configuration2.nix 
+  	    ];
+      };
+    };
+  
+    apps."x86_64-linux".default = lollypops.apps."x86_64-linux".default { configFlake = self; };
+  };
+}
+```
+
+With this you are ready to start using lollypops. The above already should allow
+you to list the tasks for two hosts with `--list-all`
+
+```sh
+nix run '.' --show-trace -- --list-all
+warning: Git tree '/home/pinpox/code/github.com/pinpox/nixos' is dirty
+task: Available tasks for this project:
+* host1:
+* host1:check-vars:
+* host1:deploy-flake:
+* host1:deploy-secrets:
+* host1:rebuild:
+* host2:
+* host2:check-vars:
+* host2:deploy-flake:
+* host2:deploy-secrets:
+* host2:rebuild:
+```
+
+To actually do something useful you can now use the options provided by the
+lollypops module in your `configuration.nix` (or whereever your the
+configuration of your host is specified).
+
+The options exposed by the module are grouped into to groups:
+`lollypops.deployment` for deployment options and `lollypops.secrets.files` to
+configure... you guessed it, secrets.
+
+### Deployment
+
+Specify how and where to deploy. The default values may be sufficient here in
+a lot of cases.
+
+```nix
+lollypops.deployment = {
+  # Where on the remote the configuration (system flake) is placed
+  config-dir = "/var/src/lollypops";
+
+  # Ssh connection parameters
+  host = "${config.networking.hostName}";
+  user = "root";
+};
+```
 
 ### Secrets
 
-## Debuggging
---verbose
+Secrets are specified as attribute set. All parameters are optional and can be
+omitted except the name. In it's default configuration `pass` will be used to
+search for the secret placing it in `/run/keys/secretname` with permissions
+`0400` owned by `root:root`.
 
-
-# Other
-
-```nix
-# flake.nix
-# TODO flake input and module import
-
-apps = {
-		default = lollypops.apps."${system}".default { configFlake = self; };
-};
-```
-
-Define your secrets in your host's `configuration.nix`. See `module.nix` for all
-possible options.
+The `cmd` option expects a command that will print the secret value. This can be
+any tool like a password manager that prints to stdout or a simple `cat
+secretfile`. This allows integration with external sources of secrets. It will
+be run on the local system to get the value to be placed in the remote file via
+ssh.
 
 ```nix
-# configuration.nix
-
 lollypops.secrets.files = {
-	secret1 = {
-		cmd = "pass test-password";
-		path = "/tmp/secretfile";
-	};
-};
 
-
-  lollypops.secrets.files = {
+	# Secret from a file with owner and group
     secret1 = {
       cmd = "pass test-password";
-      path = "/tmp/testfile5";
+      path = "/var/lib/password-from-file";
+	  owner = "joe";
+	  groups = "mygroup"
     };
 
-    "nixos-secrets/ahorn/ssh/borg/public" = {
-      path = "/tmp/testfile7";
+	# Secret from pass with default permissions
+    "nixos-secrets/host1/backup-key" = {
+      path = "/var/lib/backupconfig/password";
     };
-  };
+
+	# Secret from bitwarden CLI
+    secret2 = {
+	  cmd = "bw get password my-secret-token";
+      path = "/home/pinpox/password-from-file";
+	  owner = "pinpox";
+	  groups = "pinpox"
+    };
+
+};
 ```
 
+See [module](https://github.com/pinpox/lollypops/blob/main/module.nix) for a
+full list of options with defaults and example values.
+
+### Debugging
+
+lollypops hides the executed commands in the default output. To enable full
+logging use the `--verbose` flag which is passed to go-task. 
+
+### Contributing
+
+Pull requests are very welcome!
+
+This software is under active development. If you find bugs, please open an
+issue and let me know. Open to feature request, tips and constructive criticism.
+
+Let me know if you run into problems
+
+<a href="https://www.buymeacoffee.com/pinpox"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=😎&slug=pinpox&button_colour=82aaff&font_colour=000000&font_family=Inter&outline_colour=000000&coffee_colour=FFDD00"></a>
