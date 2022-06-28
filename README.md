@@ -11,7 +11,7 @@
   <a href="https://github.com/pinpox/lollypops/actions/workflows/nix.yml"><img src="https://github.com/pinpox/lollypops/actions/workflows/nix.yml/badge.svg" alt="Contributors badge" /></a>
 </p>
 
-Lollypops is a NixOs deployment tool build as a thin, pure nix wrapper around
+Lollypops is a NixOS deployment tool build as a thin, pure nix wrapper around
 [go-task](https://taskfile.dev/). It provides parallel deployment, secret
 provisioning from any external source and configuration in nix itself among other
 other features.
