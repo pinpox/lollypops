@@ -55,7 +55,7 @@ use `--list-all`. Arguments are passed verbantim to go-task, use `--help` to get
 a full list of options including output customizaion and debugging capabilities
 or consult it's [documentation](https://taskfile.dev/usage/)
 
-```
+```sh
 # List all Tasks
 nix run '.' -- --list-all
 * ahorn:
@@ -74,7 +74,7 @@ Tasks are organized hierarchically by `hostname:tasks`. The above shows two
 hosts `ahorn` and `birne` with their corresponding tasks. To provision a host
 completely (run all tasks for this host) run:
 
-```
+```sh
 # Run all tasks for a host
 nix run '.' -- ahorn
 ```
@@ -83,7 +83,7 @@ This would run the tasks `ahorn:check-vars` `ahorn:deploy-flake`
 `ahorn:deploy-secrets` and `ahorn:rebuild`. You can also only run a specific
 subtask e.g.:
 
-```
+```sh
 # Run specific task for a host
 nix run '.' -- ahorn:deploy-secrets
 ```
@@ -95,7 +95,7 @@ Lastly you can run multiple tasks in parallel by using the `--parallel flag`
 (alias `-p`) and specifying multiple tasks. Keep in mind that dependencies are
 run in parallel per default in go-task.
 
-```
+```sh
 # Provision ahorn and birne in parallel
 nix run '.' -- -p ahorn birne
 
