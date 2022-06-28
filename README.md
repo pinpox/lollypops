@@ -153,7 +153,6 @@ you to list the tasks for two hosts with `--list-all`
 
 ```sh
 nix run '.' --show-trace -- --list-all
-warning: Git tree '/home/pinpox/code/github.com/pinpox/nixos' is dirty
 task: Available tasks for this project:
 * host1:
 * host1:check-vars:
