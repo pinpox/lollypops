@@ -1,6 +1,12 @@
 # lollypops
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/1719781/176172739-1ee4447e-a758-432f-9a53-22c17f2d3319.svg" height="200"/>
+</p>
+<p align="center">
+  Lollypop Operations - NixOS Deployment Tool
+</p>
 
-Lollypop Operations - NixOS Deployment Tool
+
 
 ## WORK IN PROGRESS
 
