@@ -49,16 +49,72 @@ your system or burn everything to the ground.
 
 (did you read the above?)
 
+After configuration (see below) you will be able to run lollypops passing it one
+or more arguments to specify which tasks to run. To see what tasks are avaiable
+use `--list-all`. Arguments are passed verbantim to go-task, use `--help` to get
+a full list of options including output customizaion and debugging capabilities
+or consult it's [documentation](https://taskfile.dev/usage/)
+
 ```
 # List all Tasks
 nix run '.' -- --list-all
+* ahorn:
+* ahorn:check-vars:
+* ahorn:deploy-flake:
+* ahorn:deploy-secrets:
+* ahorn:rebuild:
+* birne:
+* birne:check-vars:
+* birne:deploy-flake:
+* birne:deploy-secrets:
+* birne:rebuild:
+```
 
+Tasks are organized hierarchically by `hostname:tasks`. The above shows two
+hosts `ahorn` and `birne` with their corresponding tasks. To provision a host
+completely (run all tasks for this host) run:
+
+```
+# Run all tasks for a host
+nix run '.' -- ahorn
+```
+
+This would run the tasks `ahorn:check-vars` `ahorn:deploy-flake`
+`ahorn:deploy-secrets` and `ahorn:rebuild`. You can also only run a specific
+subtask e.g.:
+
+```
 # Run specific task for a host
 nix run '.' -- ahorn:deploy-secrets
-
-# Run all tasks for a host
-nix run '.' -- provision-ahorn
 ```
+
+This can be useful to quickly (re-)deploy a single secret or just run the
+rebuilding step without setting the complete deployment in motion.
+
+Lastly you can run multiple tasks in parallel by using the `--parallel flag`
+(alias `-p`) and specifying multiple tasks. Keep in mind that dependencies are
+run in parallel per default in go-task.
+
+```
+# Provision ahorn and birne in parallel
+nix run '.' -- -p ahorn birne
+
+[birne:deploy-flake] Deploying flake to: kartoffel
+[ahorn:deploy-flake] Deploying flake to: ahorn
+[ahorn:deploy-flake] sending incremental file list
+[ahorn:deploy-flake] sent 7.001 bytes  received 125 bytes  14.252,00 bytes/sec
+[ahorn:deploy-flake] total size is 667.681  speedup is 93,70
+[ahorn:deploy-secrets] Deploying secrets to: ahorn
+[ahorn:rebuild] Rebuilding: ahorn
+[birne:deploy-flake] sent 9.092 bytes  received 205 bytes  15.252,00 bytes/sec
+ssh: Could not resolve hostname kartoffel: Name or service not known
+[ahorn:rebuild] building the system configuration...
+...
+```
+
+### Configuration
+
+### Secrets
 
 ## Debuggging
 --verbose
