@@ -16,7 +16,7 @@ let
 
       cmd = mkOption {
         type = types.str;
-        default = "${pkgs.pass}/bin/pass ${config.name}";
+        default = "${cfg.secrets.default-cmd} ${cfg.secrets.cmd-name-prefix}${config.name}";
         description = "Command to print the secret. E.g. `cat mysecretfile`";
       };
 
@@ -51,6 +51,18 @@ in
   options.lollypops = {
 
     secrets = {
+
+      default-cmd = mkOption {
+        type = types.str;
+        default = "${pkgs.pass}/bin/pass";
+        description = "Default command to retrieve passwords. Will be passed the name as parameter";
+      };
+
+      cmd-name-prefix = mkOption {
+        type = types.str;
+        default = "";
+        description = "Prefix to prepend to all name when passing to the cmd";
+      };
 
       default-dir = mkOption {
         type = types.str;
