@@ -10,7 +10,7 @@
     with inputs;
     {
       nixosModules.lollypops = import ./module.nix;
-      nixosModule = self.nixosModules.lollypops;
+      nixosModules.default = self.nixosModules.lollypops;
     } //
 
     # TODO test/add other plattforms
@@ -44,7 +44,7 @@
             in
             {
 
-              default = { configFlake, nixosConfigurations, ... }:
+              default = { configFlake, ... }:
                 let
 
                   mkTaskFileForHost = hostName: hostConfig: pkgs.writeText "CommonTasks.yml"
@@ -83,7 +83,7 @@
                             ''echo "Rebuilding: {{.HOSTNAME}}"''
                             # For dry-running use `nixos-rebuild dry-activate`
                             ''
-                              nixos-rebuild dry-activate \
+                              nixos-rebuild switch \
                               --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}' \
                               --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                               --build-host root@{{.REMOTE_HOST}}
@@ -135,7 +135,7 @@
                           {
                             taskfile = mkTaskFileForHost name value;
                           })
-                        nixosConfigurations;
+                        configFlake.nixosConfigurations;
 
                       # Define grouped tasks to run all tasks for one host.
                       # E.g. to make a complete deployment for host "server01":
@@ -150,7 +150,7 @@
                               { task = "${name}:rebuild"; }
                             ];
                           })
-                        nixosConfigurations;
+                        configFlake.nixosConfigurations;
                     });
                 in
                 flake-utils.lib.mkApp
