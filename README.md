@@ -1,7 +1,7 @@
 # lollypops
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/1719781/176174434-9813865f-9b1d-4a8f-aa45-7c2f30023ae2.svg" height="200"/>  
+  <img src="https://user-images.githubusercontent.com/1719781/176185996-f7bd3919-df7f-4684-b464-46b414b46483.png" height="200"/>  
 </p>
 <p align="center">
   Lollypop Operations - NixOS Deployment Tool
@@ -35,7 +35,7 @@ Lollypops is inspired by [krops](https://github.com/krebs/krops)
 - Easily extensible and customizable
 - Minimal overhead and easy debugging
 - Secret provisioning from any source (e.g. [pass](https://www.passwordstore.org/),
-  [bitwarden](https://bitwarden.com/), plaintext files)
+  [bitwarden](https://bitwarden.com/), plaintext files...)
 - Fully flake compatible
 
 ## Usage
