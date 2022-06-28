@@ -120,30 +120,30 @@ A complete minimal example:
 {
   inputs = {
     lollypops.url = "github:pinpox/lollypops";
-	# Other inputs ... 
+    # Other inputs ...
   };
 
   outputs = { nixpkgs, lollypops, self, ... }: {
 
     nixosConfigurations = {
-  
+
       host1 = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ 
+        modules = [
           lollypops.nixosModules.lollypops
-  	      ./configuration1.nix 
-  	    ];
+          ./configuration1.nix
+        ];
       };
-  
+
       host2 = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ 
+        modules = [
           lollypops.nixosModules.lollypops
-  	      ./configuration2.nix 
-  	    ];
+          ./configuration2.nix
+        ];
       };
     };
-  
+
     apps."x86_64-linux".default = lollypops.apps."x86_64-linux".default { configFlake = self; };
   };
 }
@@ -206,30 +206,29 @@ be run on the local system to get the value to be placed in the remote file via
 ssh.
 
 ```nix
-lollypops.secrets.files = {
+  lollypops.secrets.files = {
 
-	# Secret from a file with owner and group
+    # Secret from a file with owner and group
     secret1 = {
       cmd = "pass test-password";
       path = "/var/lib/password-from-file";
-	  owner = "joe";
-	  groups = "mygroup"
+      owner = "joe";
+      groups = "mygroup";
     };
 
-	# Secret from pass with default permissions
+    # Secret from pass with default permissions
     "nixos-secrets/host1/backup-key" = {
       path = "/var/lib/backupconfig/password";
     };
 
-	# Secret from bitwarden CLI
+    # Secret from bitwarden CLI
     secret2 = {
-	  cmd = "bw get password my-secret-token";
+      cmd = "bw get password my-secret-token";
       path = "/home/pinpox/password-from-file";
-	  owner = "pinpox";
-	  groups = "pinpox"
+      owner = "pinpox";
+      groups = "pinpox";
     };
-
-};
+  };
 ```
 
 See [module](https://github.com/pinpox/lollypops/blob/main/module.nix) for a
