@@ -1,4 +1,5 @@
 # lollypops
+
 <p align="center">
   <img src="https://user-images.githubusercontent.com/1719781/176174434-9813865f-9b1d-4a8f-aa45-7c2f30023ae2.svg" height="200"/>  
 </p>
@@ -6,7 +7,9 @@
   Lollypop Operations - NixOS Deployment Tool
 </p>
 
-
+<p align="center">
+  <a href="https://github.com/pinpox/lollypops/actions/workflows/nix.yml"><img src="https://github.com/pinpox/lollypops/actions/workflows/nix.yml/badge.svg" alt="Contributors badge" /></a>
+</p>
 
 ## WORK IN PROGRESS
 
