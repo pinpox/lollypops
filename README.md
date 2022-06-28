@@ -24,15 +24,12 @@ nix run '.' -- ahorn:deploy-secrets
 nix run '.' -- provision-ahorn
 ```
 
-# Parallel execution
-
-TODO: document
 
 ## Debuggging
 --verbose
 
-
 # Features
+
 - Stateless
 - Parallel execution
 - Secret provisioning from any source
@@ -44,7 +41,7 @@ TODO: document
 # TODO flake input and module import
 
 apps = {
-	default = lollypops.apps."${system}".default { nixosConfigurations = self.nixosConfigurations; };
+		default = lollypops.apps."${system}".default { configFlake = self; };
 };
 ```
 
