@@ -28,15 +28,15 @@
                   "echo 'Deploying ${x.name} to ${x.path}'"
                   # Remove if already
                   ''
-                    ssh ${config.lollypops.deployment.user}@${config.lollypops.deployment.host} "rm -f ${x.path}"
+                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "rm -f ${x.path}"
                   ''
                   # Copy file
                   ''
-                    ${x.cmd} | ssh ${config.lollypops.deployment.user}@${config.lollypops.deployment.host} "umask 077; cat > ${x.path}"
+                    ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOET_HOST}} "umask 077; cat > ${x.path}"
                   ''
                   # Set group and owner
                   ''
-                    ssh ${config.lollypops.deployment.user}@${config.lollypops.deployment.host} "chown ${x.owner}:${x.group-name} ${x.path}"
+                    ssh {{.REMOTE_USER}}@{{.REMOET_HOST}} "chown ${x.owner}:${x.group-name} ${x.path}"
                   ''
                 ])
                 (builtins.attrValues config.lollypops.secrets.files));
@@ -44,29 +44,37 @@
             in
             {
 
-              default = { nixosConfigurations, ... }:
+              default = { configFlake, nixosConfigurations, ... }:
                 let
 
-                  mkTaskFileForHost = hostConfig: pkgs.writeText "CommonTasks.yml"
+                  mkTaskFileForHost = hostName: hostConfig: pkgs.writeText "CommonTasks.yml"
                     (builtins.toJSON {
                       version = "3";
+                      output = "prefixed";
+
+                      vars = with hostConfig.config.lollypops; {
+                        REMOTE_USER = deployment.user;
+                        REMOTE_HOST = deployment.host;
+                        REMOTE_CONFIG_DIR = deployment.config-dir;
+                        LOCAL_FLAKE_SOURCE = configFlake;
+                        HOSTNAME = hostName;
+                      };
 
                       tasks = {
 
-                        greet.cmds = [ ''echo "Hello {{.HOST}}"'' ];
-
                         check-vars.preconditions = [{
-                          sh = ''[ ! -z "{{.HOST}}" ]'';
-                          msg = "HOST not set: {{.HOST}}";
+                          sh = ''[ ! -z "{{.HOSTNAME}}" ]'';
+                          msg = "HOSTNAME not set: {{.HOSTNAME}}";
                         }];
 
                         deploy-secrets = {
                           deps = [ "check-vars" ];
 
+                          # TODO hide secrets deployment
                           # silent = true;
 
                           cmds = [
-                            ''echo "Deploying secrets to: {{.HOST}} (not impletmented yet)!"''
+                            ''echo "Deploying secrets to: {{.HOSTNAME}} (not impletmented yet)!"''
                           ] ++ mkSeclist hostConfig.config;
 
                         };
@@ -75,18 +83,38 @@
                           dir = self;
                           deps = [ "check-vars" ];
                           cmds = [
-                            # TODO commented out for testing
+                            ''echo "Rebuilding: {{.HOSTNAME}}!"''
+                            # For dry-running use `nixos-rebuild dry-activate`
                             ''
-                              echo "Rebuilding: {{.HOST}}!"
-                              # nixos-rebuild switch --flake '.#{{.HOST}}' --target-host root@{{.HOST}} --build-host root@{{.HOST}}
+                              nixos-rebuild dry-activate \
+                              --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}' \
+                              --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                              --build-host root@{{.REMOTE_HOST}}
                             ''
                           ];
                         };
 
                         deploy-flake = {
+
                           deps = [ "check-vars" ];
                           cmds = [
-                            ''echo "Deploying flake to: {{.HOST}} (not impletmented yet)!"''
+                            ''echo "Deploying flake to: {{.HOSTNAME}}"''
+                            ''
+                              source_path={{.LOCAL_FLAKE_SOURCE}}
+                              if test -d "$source_path"; then
+                                source_path=$source_path/
+                              fi
+                              ${pkgs.rsync}/bin/rsync \
+                              --verbose \
+                              -e ssh\ -l\ root\ -T \
+                              -FD \
+                              --times \
+                              --perms \
+                              --recursive \
+                              --links \
+                              --delete-excluded \
+                              $source_path {{.REMOTE_USER}}\@{{.REMOTE_HOST}}:{{.REMOTE_CONFIG_DIR}}
+                            ''
                           ];
                         };
                       };
@@ -97,6 +125,7 @@
                     "Taskfile.yml"
                     (builtins.toJSON {
                       version = "3";
+                      output = "prefixed";
 
                       # Import the taks once for each host, setting the HOST
                       # variable. This allows running them as `host:task` for
@@ -104,8 +133,7 @@
                       includes = builtins.mapAttrs
                         (name: value:
                           {
-                            taskfile = mkTaskFileForHost value;
-                            vars.HOST = name;
+                            taskfile = mkTaskFileForHost name value;
                           })
                         nixosConfigurations;
 
@@ -117,11 +145,8 @@
                           {
                             cmds = [
                               # TODO make these configurable, set these three as default in the module
-                              # { task = "ahorn:greet"; }
                               { task = "${name}:deploy-flake"; }
-                              {
-                                task = "${name}:deploy-secrets";
-                              }
+                              { task = "${name}:deploy-secrets"; }
                               { task = "${name}:rebuild"; }
                             ];
                           })

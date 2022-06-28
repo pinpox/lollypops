@@ -39,11 +39,12 @@ let
         default = "root";
         description = "Group of the file";
       };
-      source-path = mkOption {
-        type = types.str;
-        default = "/var/src/secrets/${config.name}";
-        description = "Source to copy from";
-      };
+
+      # source-path = mkOption {
+      #   type = types.str;
+      #   default = "/var/src/secrets/${config.name}";
+      #   description = "Source to copy from";
+      # };
     };
   });
 in
@@ -60,11 +61,19 @@ in
 
 
     deployment = {
+
+      config-dir = mkOption {
+        type = types.str;
+        default = "/var/src/lollypops";
+        description = "Path to place the configuration on the remote host";
+      };
+
       host = mkOption {
         type = types.str;
         default = "${config.networking.hostName}";
         description = "Host to deploy to";
       };
+
       user = mkOption {
         type = types.str;
         default = "root";

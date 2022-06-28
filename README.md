@@ -24,6 +24,12 @@ nix run '.' -- ahorn:deploy-secrets
 nix run '.' -- provision-ahorn
 ```
 
+# Parallel execution
+
+TODO: document
+
+# Other
+
 ```nix
 # flake.nix
 # TODO flake input and module import
@@ -46,3 +52,4 @@ lollypops.secrets.files = {
 	};
 };
 ```
+
