@@ -11,6 +11,34 @@
   <a href="https://github.com/pinpox/lollypops/actions/workflows/nix.yml"><img src="https://github.com/pinpox/lollypops/actions/workflows/nix.yml/badge.svg" alt="Contributors badge" /></a>
 </p>
 
+Lollypops is a NixOs deployment tool build as a thin, pure nix wrapper around
+[go-task](https://taskfile.dev/). It provides parallel deployment, secret
+provisioning from any external source and configuration in nix itself among other
+other features.
+
+The deployment options and secrets are specified in each host's `flake.nix`
+configuration. Lollypops then takes all `nixosConfigurations` and generates a
+[go-task](https://taskfile.dev/) yaml configuration internally on the fly when
+executed. This allows to run any selection of tasks in parallel or manually
+execute a single step and take full advantage of all go-task
+[features](https://taskfile.dev/usage/) while being fully customizable and
+easily debuggable.
+
+Lollypops is inspired by [krops](https://github.com/krebs/krops)
+[colmena](https://github.com/zhaofengli/colmena).
+
+# Features
+
+- Stateless
+- Parallel execution
+- Configured in nix
+- Easily extensible and customizable
+- Minimal overhead and easy debugging
+- Secret provisioning from any source (e.g. [pass](https://www.passwordstore.org/),
+  [bitwarden](https://bitwarden.com/), plaintext files)
+- Fully flake compatible
+
+## Usage
 ## WORK IN PROGRESS
 
 Not usable yet. Development ongoing. It may change and any time. It may destroy
@@ -18,7 +46,6 @@ your system or burn everything to the ground.
 
 (PR's welcome)
 
-## Usage
 
 (did you read the above?)
 
@@ -33,15 +60,9 @@ nix run '.' -- ahorn:deploy-secrets
 nix run '.' -- provision-ahorn
 ```
 
-
 ## Debuggging
 --verbose
 
-# Features
-
-- Stateless
-- Parallel execution
-- Secret provisioning from any source
 
 # Other
 
