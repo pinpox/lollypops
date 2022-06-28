@@ -171,7 +171,7 @@ lollypops module in your `configuration.nix` (or whereever your the
 configuration of your host is specified).
 
 The options exposed by the module are grouped into to groups:
-`lollypops.deployment` for deployment options and `lollypops.secrets.files` to
+`lollypops.deployment` for deployment options and `lollypops.secrets` to
 configure... you guessed it, secrets.
 
 ### Deployment
@@ -192,10 +192,13 @@ lollypops.deployment = {
 
 ### Secrets
 
-Secrets are specified as attribute set. All parameters are optional and can be
-omitted except the name. In it's default configuration `pass` will be used to
-search for the secret placing it in `/run/keys/secretname` with permissions
-`0400` owned by `root:root`.
+Secrets are specified as attribute set under `lollypops.secrets.files`. All
+parameters are optional and can be omitted except the name. In it's default
+configuration `pass` will be used to search for the secret placing it in
+`/run/keys/secretname` with permissions `0400` owned by `root:root`.
+
+You can change the default secret directory using
+`lollypops.secrets.default-dir` if you want to default to a different directory.
 
 The `cmd` option expects a command that will print the secret value. This can be
 any tool like a password manager that prints to stdout or a simple `cat

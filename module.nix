@@ -22,7 +22,7 @@ let
 
       path = mkOption {
         type = types.str;
-        default = "/run/keys/${config.name}";
+        default = "${cfg.secrets.default-dir}/${config.name}";
         description = "Path to place the secret file";
       };
 
@@ -49,7 +49,16 @@ in
 {
 
   options.lollypops = {
+
+
     secrets = {
+
+      default-dir = mkOption {
+        type = types.str;
+        default = "/var/src/lollypops-secrets";
+        description = "Path to place the configuration on the remote host";
+      };
+
       files = mkOption {
         type = with types; attrsOf secret-file;
         default = { };

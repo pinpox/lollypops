@@ -30,6 +30,10 @@
                   ''
                     ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "rm -f ${x.path}"
                   ''
+                  # Create directory if it does not exist
+                  ''
+                   ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} mkdir -p "$(dirname "${x.path}")" -m 0750
+                  ''
                   # Copy file
                   ''
                     ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${x.path}"
