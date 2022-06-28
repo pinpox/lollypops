@@ -24,8 +24,7 @@ execute a single step and take full advantage of all go-task
 [features](https://taskfile.dev/usage/) while being fully customizable and
 easily debuggable.
 
-Lollypops is inspired by [krops](https://github.com/krebs/krops)
-[colmena](https://github.com/zhaofengli/colmena).
+Lollypops is inspired by [krops](https://github.com/krebs/krops) and [colmena](https://github.com/zhaofengli/colmena).
 
 ## Features
 
