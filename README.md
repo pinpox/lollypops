@@ -35,7 +35,7 @@ Lollypops is inspired by [krops](https://github.com/krebs/krops)
 - Easily extensible and customizable
 - Minimal overhead and easy debugging
 - Secret provisioning from any source (e.g. [pass](https://www.passwordstore.org/),
-  [bitwarden](https://bitwarden.com/), plaintext files)
+  [bitwarden](https://bitwarden.com/), plaintext files...)
 - Fully flake compatible
 
 ## Usage
