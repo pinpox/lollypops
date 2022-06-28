@@ -22,7 +22,7 @@ let
 
       path = mkOption {
         type = types.str;
-        default = "${cfg.secrets.default-dir-todo}/${config.name}";
+        default = "${cfg.secrets.default-dir}/${config.name}";
         description = "Path to place the secret file";
       };
 
@@ -53,9 +53,9 @@ in
 
     secrets = {
 
-      secrets-dir = mkOption {
+      default-dir = mkOption {
         type = types.str;
-        default = "/var/src/lollypops-secrets";
+        default = "/run/keys";
         description = "Path to place the configuration on the remote host";
       };
 
@@ -97,8 +97,8 @@ in
           unique (map (flip removeAttrs [ "_module" ]) (attrValues cfg.secrets.files));
         script = ''
           echo setting up secrets...
-          mkdir -p /run/keys -m 0750
-          chown root:keys /run/keys
+          mkdir -p /run/lollypops-keys -m 0750
+          chown root:keys /run/lollypops-keys
           ${concatMapStringsSep "\n" (file: ''
             ${pkgs.coreutils}/bin/install \
               -D \

@@ -32,13 +32,13 @@
                   # ''
                   # Create directory if it does not exist
                   ''
-                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 750; mkdir -p "$(dirname "{{.REMOTE_SECRETS_DIR}}/${pkgs.lib.escapeShellArg x.name}")"'
+                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; mkdir -p "$(dirname "{{.REMOTE_SECRETS_DIR}}/${pkgs.lib.escapeShellArg x.name}")"'
                   ''
                   # Copy file
                   ''
-                    ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 750; cat > {{.REMOTE_SECRETS_DIR}}/${pkgs.lib.escapeShellArg x.name}"
+                    ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > {{.REMOTE_SECRETS_DIR}}/${pkgs.lib.escapeShellArg x.name}"
                   ''
-                  # Set group and owner
+                  # # Set group and owner
                   # ''
                   #   ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${x.owner}:${x.group-name} ${x.path}"
                   # ''
@@ -60,7 +60,7 @@
                         REMOTE_USER = deployment.user;
                         REMOTE_HOST = deployment.host;
                         REMOTE_CONFIG_DIR = deployment.config-dir;
-                        REMOTE_SECRETS_DIR = secrets.secrets-dir;
+                        REMOTE_SECRETS_DIR = secrets.default-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
                         HOSTNAME = hostName;
                       };
@@ -77,13 +77,13 @@
 
                           cmds = [
                             ''echo "Deploying secrets to: {{.HOSTNAME}}"''
-                            # TODO Should we remove old dirs?
+                            # Should we remove old dirs?
                             # ''
                             #   ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'rm -rf "{{.REMOTE_SECRETS_DIR}}"'
                             # ''
-                            ''
-                              ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 750; mkdir -p "{{.REMOTE_SECRETS_DIR}}"'
-                            ''
+                            # ''
+                            #   ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; mkdir -p "{{.REMOTE_SECRETS_DIR}}"'
+                            # ''
                           ] ++ mkSeclist hostConfig.config;
 
                         };
