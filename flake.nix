@@ -14,7 +14,7 @@
     } //
 
     # TODO test/add other plattforms
-    (flake-utils.lib.eachSystem [ "aarch64-linux" "i686-linux" "x86_64-linux" ])
+    (flake-utils.lib.eachDefaultSystem)
       (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
@@ -32,11 +32,11 @@
                   ''
                   # Copy file
                   ''
-                    ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOET_HOST}} "umask 077; cat > ${x.path}"
+                    ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${x.path}"
                   ''
                   # Set group and owner
                   ''
-                    ssh {{.REMOTE_USER}}@{{.REMOET_HOST}} "chown ${x.owner}:${x.group-name} ${x.path}"
+                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${x.owner}:${x.group-name} ${x.path}"
                   ''
                 ])
                 (builtins.attrValues config.lollypops.secrets.files));
@@ -70,11 +70,8 @@
                         deploy-secrets = {
                           deps = [ "check-vars" ];
 
-                          # TODO hide secrets deployment
-                          # silent = true;
-
                           cmds = [
-                            ''echo "Deploying secrets to: {{.HOSTNAME}} (not impletmented yet)!"''
+                            ''echo "Deploying secrets to: {{.HOSTNAME}}"''
                           ] ++ mkSeclist hostConfig.config;
 
                         };
@@ -83,7 +80,7 @@
                           dir = self;
                           deps = [ "check-vars" ];
                           cmds = [
-                            ''echo "Rebuilding: {{.HOSTNAME}}!"''
+                            ''echo "Rebuilding: {{.HOSTNAME}}"''
                             # For dry-running use `nixos-rebuild dry-activate`
                             ''
                               nixos-rebuild dry-activate \
@@ -126,6 +123,9 @@
                     (builtins.toJSON {
                       version = "3";
                       output = "prefixed";
+
+                      # Don't print excuted commands. Can be overridden by -v
+                      silent = true;
 
                       # Import the taks once for each host, setting the HOST
                       # variable. This allows running them as `host:task` for

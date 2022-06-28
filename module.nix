@@ -7,6 +7,7 @@ let
 
   secret-file = types.submodule ({ config, ... }: {
     options = {
+
       name = mkOption {
         type = types.str;
         default = config._module.args.name;
@@ -15,8 +16,8 @@ let
 
       cmd = mkOption {
         type = types.str;
-        default = "cat ${config.source-path}";
-        description = "TODO";
+        default = "${pkgs.pass}/bin/pass ${config.name}";
+        description = "Command to print the secret. E.g. `cat mysecretfile`";
       };
 
       path = mkOption {
@@ -24,27 +25,24 @@ let
         default = "/run/keys/${config.name}";
         description = "Path to place the secret file";
       };
+
       mode = mkOption {
         type = types.str;
         default = "0400";
         description = "Unix permission";
       };
+
       owner = mkOption {
         type = types.str;
         default = "root";
-        description = "Owner of the file";
+        description = "Owner of the secret file";
       };
+
       group-name = mkOption {
         type = types.str;
         default = "root";
-        description = "Group of the file";
+        description = "Group of the secret file";
       };
-
-      # source-path = mkOption {
-      #   type = types.str;
-      #   default = "/var/src/secrets/${config.name}";
-      #   description = "Source to copy from";
-      # };
     };
   });
 in
@@ -58,7 +56,6 @@ in
         description = "Attribute set specifying secrets to be deployed";
       };
     };
-
 
     deployment = {
 

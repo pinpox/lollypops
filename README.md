@@ -28,6 +28,15 @@ nix run '.' -- provision-ahorn
 
 TODO: document
 
+## Debuggging
+--verbose
+
+
+# Features
+- Stateless
+- Parallel execution
+- Secret provisioning from any source
+
 # Other
 
 ```nix
@@ -51,5 +60,17 @@ lollypops.secrets.files = {
 		path = "/tmp/secretfile";
 	};
 };
+
+
+  lollypops.secrets.files = {
+    secret1 = {
+      cmd = "pass test-password";
+      path = "/tmp/testfile5";
+    };
+
+    "nixos-secrets/ahorn/ssh/borg/public" = {
+      path = "/tmp/testfile7";
+    };
+  };
 ```
 
