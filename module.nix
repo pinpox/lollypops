@@ -79,6 +79,12 @@ in
 
     deployment = {
 
+      local-evaluation = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Evaluate locally instead of on the remote when rebuilding";
+      };
+
       config-dir = mkOption {
         type = types.str;
         default = "/var/src/lollypops";

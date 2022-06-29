@@ -190,6 +190,10 @@ lollypops.deployment = {
 };
 ```
 
+Setting `lollypops.deployment.local-evaluation` to true, will result in
+evaluation being done on the local side. This requires `nixos-rebuild` in your
+`$PATH`
+
 ### Secrets
 
 Secrets are specified as attribute set under `lollypops.secrets.files`. All

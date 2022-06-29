@@ -83,12 +83,18 @@
                           cmds = [
                             ''echo "Rebuilding: {{.HOSTNAME}}"''
                             # For dry-running use `nixos-rebuild dry-activate`
-                            # TODO add option to build locally
-                            ''
-                              ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "nixos-rebuild switch --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
-                              # --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                              # --build-host root@{{.REMOTE_HOST}}
-                            ''
+                            (
+                              if hostConfig.config.lollypops.deployment.local-evaluation then
+                                ''
+                                  nixos-rebuild switch --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}' \
+                                    --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    --build-host root@{{.REMOTE_HOST}}
+                                ''
+                              else
+                                ''
+                                  ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "nixos-rebuild switch --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
+                                ''
+                            )
                           ];
                         };
 
