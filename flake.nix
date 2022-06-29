@@ -14,7 +14,8 @@
     } //
 
     # TODO test/add other plattforms
-    (flake-utils.lib.eachDefaultSystem)
+    # (flake-utils.lib.eachDefaultSystem)
+    (flake-utils.lib.eachSystem (flake-utils.lib.defaultSystems ++ [ "aarch64-darwin" ]))
       (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
