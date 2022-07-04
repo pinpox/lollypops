@@ -104,4 +104,8 @@ in
       };
     };
   };
+
+  config = {
+     environment.systemPackages = with pkgs; [ rsync ];
+  };
 }

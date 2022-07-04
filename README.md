@@ -194,6 +194,12 @@ Setting `lollypops.deployment.local-evaluation` to true, will result in
 evaluation being done on the local side. This requires `nixos-rebuild` in your
 `$PATH`
 
+**Note:** Rsync is required on the remote for remote evaluation to work. While
+the lollypops module will add the package to `environment.systemPackages` it may
+be missing still on the first deployment. To fix this, either add it to your
+$PATH on the remote side or do your first deployment with
+`lollypops.deployment.local-evaluation` set to `true`.
+
 ### Secrets
 
 Secrets are specified as attribute set under `lollypops.secrets.files`. All
