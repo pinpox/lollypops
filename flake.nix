@@ -110,7 +110,7 @@
                               fi
                               ${pkgs.rsync}/bin/rsync \
                               --verbose \
-                              -e ssh\ -l\ root\ -T \
+                              -e ssh\ -l\ {{.REMOTE_USER}}\ -T \
                               -FD \
                               --times \
                               --perms \
