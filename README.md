@@ -81,6 +81,8 @@ nix run '.' -- ahorn:deploy-secrets
 This can be useful to quickly (re-)deploy a single secret or just run the
 rebuilding step without setting the complete deployment in motion.
 
+There is also a special task called `all`, which will deploy all hosts.
+
 Lastly you can run multiple tasks in parallel by using the `--parallel flag`
 (alias `-p`) and specifying multiple tasks. Keep in mind that dependencies are
 run in parallel per default in go-task.

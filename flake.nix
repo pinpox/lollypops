@@ -158,7 +158,11 @@
                               { task = "${name}:rebuild"; }
                             ];
                           })
-                        configFlake.nixosConfigurations;
+                        configFlake.nixosConfigurations // {
+                        # Add special task called "all" which has all hosts as
+                        # dependency to deploy all hosts at onece
+                        all.deps = map (x: { task = x; }) (builtins.attrNames configFlake.nixosConfigurations);
+                      };
                     });
                 in
                 flake-utils.lib.mkApp
