@@ -102,6 +102,18 @@ ssh: Could not resolve hostname kartoffel: Name or service not known
 ...
 ```
 
+### Override nixos-rebuild action
+
+By default the rebuild step will run `nixos-rebuild switch` to activate the
+configuration as part of the deployment. It is possible to override the default
+(`switch`) rebuild action for testing, e.g. to set it to `boot`, `test` or
+`dry-activate` by setting the environment variable `REBUILD_ACTION` to the
+desired action, e.g.
+
+```sh
+REBUILD_ACTION=dry-activate nix run '.' -- -p ahorn birne
+```
+
 ## Configuration
 
 Add lollypops to your flake's inputs as you would for any dependency and import
