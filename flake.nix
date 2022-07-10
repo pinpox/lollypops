@@ -56,6 +56,7 @@
                       vars = with hostConfig.config.lollypops; {
                         REMOTE_USER = deployment.user;
                         REMOTE_HOST = deployment.host;
+                        REBUILD_ACTION = deployment.rebuild-action;
                         REMOTE_CONFIG_DIR = deployment.config-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
                         HOSTNAME = hostName;
@@ -86,13 +87,13 @@
                             (
                               if hostConfig.config.lollypops.deployment.local-evaluation then
                                 ''
-                                  nixos-rebuild switch --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}' \
+                                  nixos-rebuild {{.REBUILD_ACTION}} --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}' \
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                     --build-host root@{{.REMOTE_HOST}}
                                 ''
                               else
                                 ''
-                                  ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "nixos-rebuild switch --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
+                                  ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "nixos-rebuild {{.REBUILD_ACTION}} --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
                                 ''
                             )
                           ];

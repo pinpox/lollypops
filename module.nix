@@ -85,6 +85,12 @@ in
         description = "Evaluate locally instead of on the remote when rebuilding";
       };
 
+      rebuild-action = mkOption {
+        type = types.enum ["switch" "boot" "reboot" "test" "dry-activate" ];
+        default = "switch";
+        description = "nixos-rebuild action to perform";
+      };
+
       config-dir = mkOption {
         type = types.str;
         default = "/var/src/lollypops";
