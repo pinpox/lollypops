@@ -88,11 +88,11 @@
                                 ''
                                   nixos-rebuild switch --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}' \
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                    --build-host root@{{.REMOTE_HOST}}
+                                    --build-host root@{{.REMOTE_HOST}} --show-trace
                                 ''
                               else
                                 ''
-                                  ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "nixos-rebuild switch --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
+                                  ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "nixos-rebuild switch --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}' --show-trace"
                                 ''
                             )
                           ];
