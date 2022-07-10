@@ -40,7 +40,7 @@ Lollypops is inspired by [krops](https://github.com/krebs/krops) and [colmena](h
 ## Usage
 
 After configuration (see below) you will be able to run lollypops passing it one
-or more arguments to specify which tasks to run. To see what tasks are avaiable
+or more arguments to specify which tasks to run. To see what tasks are available
 use `--list-all`. Arguments are passed verbantim to go-task, use `--help` to get
 a full list of options including output customizaion and debugging capabilities
 or consult it's [documentation](https://taskfile.dev/usage/)
