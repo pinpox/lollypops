@@ -56,7 +56,7 @@
                       vars = with hostConfig.config.lollypops; {
                         REMOTE_USER = deployment.user;
                         REMOTE_HOST = deployment.host;
-                        REBUILD_ACTION = deployment.rebuild-action;
+                        REBUILD_ACTION = ''{{default "switch" .REBUILD_ACTION}}'';
                         REMOTE_CONFIG_DIR = deployment.config-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
                         HOSTNAME = hostName;
