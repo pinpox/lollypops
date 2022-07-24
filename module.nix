@@ -12,18 +12,21 @@ let
         type = types.str;
         default = config._module.args.name;
         description = "Name of the secret";
+        defaultText = "<name>";
       };
 
       cmd = mkOption {
         type = types.str;
         default = "${cfg.secrets.default-cmd} ${cfg.secrets.cmd-name-prefix}${config.name}";
         description = "Command to print the secret. E.g. `cat mysecretfile`";
+        defaultText = "<default-cmd> <cmd-name-prefix><name>";
       };
 
       path = mkOption {
         type = types.str;
         default = "${cfg.secrets.default-dir}/${config.name}";
         description = "Path to place the secret file";
+        defaultText = "<default-dir>/<name>";
       };
 
       mode = mkOption {
@@ -56,6 +59,7 @@ in
         type = types.str;
         default = "${pkgs.pass}/bin/pass";
         description = "Default command to retrieve passwords. Will be passed the name as parameter";
+        defaultText = "\${pkgs.pass}/bin/pass";
       };
 
       cmd-name-prefix = mkOption {
@@ -95,6 +99,7 @@ in
         type = types.str;
         default = "${config.networking.hostName}";
         description = "Host to deploy to";
+        defaultText = "<config.networking.hostName>";
       };
 
       user = mkOption {

@@ -110,6 +110,7 @@
                                 source_path=$source_path/
                               fi
                               ${pkgs.rsync}/bin/rsync \
+                              --checksum \
                               --verbose \
                               -e ssh\ -l\ {{.REMOTE_USER}}\ -T \
                               -FD \
