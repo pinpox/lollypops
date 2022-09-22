@@ -72,7 +72,7 @@
                         deploy-secrets = {
                           deps = [ "check-vars" ];
 
-                          desc = "Deploy secrets to: {{.HOSTNAME}}";
+                          desc = "Deploy secrets to: ${hostName}";
 
                           cmds = [
                             ''echo "Deploying secrets to: {{.HOSTNAME}}"''
@@ -83,7 +83,7 @@
                         rebuild = {
                           dir = self;
 
-                          desc = "Rebuild configuration of: {{.HOSTNAME}}";
+                          desc = "Rebuild configuration of: ${hostName}";
                           deps = [ "check-vars" ];
                           cmds = [
                             ''echo "Rebuilding: {{.HOSTNAME}}"''
@@ -106,7 +106,7 @@
                         deploy-flake = {
 
                           deps = [ "check-vars" ];
-                          desc = "Deploy flake repository to: {{.HOSTNAME}}";
+                          desc = "Deploy flake repository to: ${hostName}";
                           cmds = [
                             ''echo "Deploying flake to: {{.HOSTNAME}}"''
                             ''
@@ -157,7 +157,7 @@
                       tasks = builtins.mapAttrs
                         (name: value:
                           {
-                            desc = "Provision host: {{.HOSTNAME}}";
+                            desc = "Provision host: ${name}";
                             cmds = [
                               # TODO make these configurable, set these three as default in the module
                               { task = "${name}:deploy-flake"; }
