@@ -29,15 +29,15 @@
                   "echo 'Deploying ${x.name} to ${pkgs.lib.escapeShellArg x.path}'"
                   # Create parent directory if it does not exist
                   ''
-                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; mkdir -p "$(dirname ${pkgs.lib.escapeShellArg x.path})"'
+                    set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; mkdir -p "$(dirname ${pkgs.lib.escapeShellArg x.path})"'
                   ''
                   # Copy file
                   ''
-                    ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg x.path}"
+                    set -o pipefail -e; ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg x.path}"
                   ''
                   # # Set group and owner
                   ''
-                    ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${x.owner}:${x.group-name} ${pkgs.lib.escapeShellArg x.path}"
+                    set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${x.owner}:${x.group-name} ${pkgs.lib.escapeShellArg x.path}"
                   ''
                 ])
                 (builtins.attrValues config.lollypops.secrets.files));
