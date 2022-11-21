@@ -11,6 +11,9 @@
     {
       nixosModules.lollypops = import ./module.nix;
       nixosModules.default = self.nixosModules.lollypops;
+
+      hmModule = import ./hm-module.nix;
+
     } //
 
     # TODO test/add other plattforms
