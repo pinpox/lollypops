@@ -27,6 +27,18 @@
           # Allow custom packages to be run using `nix run`
           apps =
             let
+
+              mkSeclistUser = c: [
+                ''
+                  echo '${builtins.toString (builtins.attrNames c)}: ${builtins.typeOf c}'
+                  echo '${builtins.toString (builtins.attrNames c.pinpox)}'
+                ''
+              ];
+              # pkgs.lib.lists.flatten (map
+              #   (x: [
+              #     "echo 'Deploying ${x.name} to ${pkgs.lib.escapeShellArg x.path}'"
+              #   ])
+              #   (builtins.attrValues config.lollypops.secrets.files));
               mkSeclist = config: pkgs.lib.lists.flatten (map
                 (x: [
                   "echo 'Deploying ${x.name} to ${pkgs.lib.escapeShellArg x.path}'"
@@ -79,7 +91,13 @@
 
                           cmds = [
                             ''echo "Deploying secrets to: {{.HOSTNAME}}"''
-                          ] ++ mkSeclist hostConfig.config;
+                          ]
+                          # ++ mkSeclist hostConfig.config
+                          ++ mkSeclistUser hostConfig.config.home-manager.users;
+
+                          # lollypops.secrets.files."usertest" = {};
+
+                          # home-manager.users.pinpox = flake-self.homeConfigurations.desktop;
 
                         };
 
