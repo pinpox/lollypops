@@ -11,6 +11,9 @@
     {
       nixosModules.lollypops = import ./module.nix;
       nixosModules.default = self.nixosModules.lollypops;
+
+      hmModule = import ./hm-module.nix;
+
     } //
 
     # TODO test/add other plattforms
@@ -20,10 +23,38 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
-        rec {
+        {
           # Allow custom packages to be run using `nix run`
           apps =
             let
+
+              # Build steps for all secrets of all users
+              mkSeclistUser = homeUsers: pkgs.lib.lists.flatten (builtins.attrValues (builtins.mapAttrs
+                (user: userconfig: [
+                  # Deploy secrets for user 'user'
+                  (builtins.attrValues (builtins.mapAttrs
+                    (secretName: secretConfig: [
+                      # Deloy secret 'secretName' of user 'user'
+                      "echo 'Deploying ${secretName} (from user ${user}) to ${pkgs.lib.escapeShellArg secretConfig.path}'"
+
+                      # Create parent directory if it does not exist
+                      ''
+                        set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; sudo -u ${user} mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
+                      ''
+                      # Copy file
+                      ''
+                        set -o pipefail -e; ${secretConfig.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg secretConfig.path}"
+                      ''
+                      # # Set group and owner
+                      ''
+                        set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${secretConfig.owner}:${secretConfig.group-name} ${pkgs.lib.escapeShellArg secretConfig.path}"
+                      ''
+                    ])
+                    userconfig.lollypops.secrets.files))
+
+                ])
+                homeUsers));
+
               mkSeclist = config: pkgs.lib.lists.flatten (map
                 (x: [
                   "echo 'Deploying ${x.name} to ${pkgs.lib.escapeShellArg x.path}'"
@@ -76,8 +107,9 @@
 
                           cmds = [
                             ''echo "Deploying secrets to: {{.HOSTNAME}}"''
-                          ] ++ mkSeclist hostConfig.config;
-
+                          ]
+                          ++ mkSeclist hostConfig.config
+                          ++ mkSeclistUser hostConfig.config.home-manager.users;
                         };
 
                         rebuild = {
