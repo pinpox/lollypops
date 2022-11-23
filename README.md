@@ -259,6 +259,31 @@ ssh.
 See [module](https://github.com/pinpox/lollypops/blob/main/module.nix) for a
 full list of options with defaults and example values.
 
+#### Home-manager secrets
+
+If you are using home-manager, you may want to use secrets in your home
+configuration as well. For this, lollypops provides a separate home-manager
+module that can be imported to enable support for user-specific secrets.
+
+In your home-manager configuration import the `hmModule` provided by the flake:
+
+```nix
+imports = [
+	lollypops.hmModule
+];
+```
+
+This allows specifying secrets in the same way as the system-wide secrets. For
+user-specific secrets lollypops defaults to `$HOME/lollypops-secrets` for it's
+location and sets the ownership to the user instead of root.
+
+```
+  lollypops.secrets = {
+    cmd-name-prefix = "nixos-secrets/users/pinpox/";
+    files."usertest" = { };
+  };
+```
+
 ### Debugging
 
 lollypops hides the executed commands in the default output. To enable full
