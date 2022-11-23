@@ -1,27 +1,5 @@
-# { config, lib, pkgs, ... }:
-
-# with lib;
-
-# let
-#   serviceConfig = config.services.lollypops-hm-test;
-# in
-# {
-#   # meta.maintainers = [ maintainers.DamienCassou ];
-
-#   options = {
-#     services.lollypops-hm-test = {
-#       enable = mkEnableOption "lollypops-hm-test service";
-#     };
-#   };
-
-#   config = mkIf serviceConfig.enable { };
-# }
-
-
 { config, pkgs, lib, ... }:
-
 with lib;
-
 let
   cfg = config.lollypops;
 
@@ -55,17 +33,17 @@ let
         description = "Unix permission";
       };
 
-      # owner = mkOption {
-      #   type = types.str;
-      #   default = "root";
-      #   description = "Owner of the secret file";
-      # };
+      owner = mkOption {
+        type = types.str;
+        default = "${cfg.secrets.default-user}";
+        description = "Owner of the secret file";
+      };
 
-      # group-name = mkOption {
-      #   type = types.str;
-      #   default = "root";
-      #   description = "Group of the secret file";
-      # };
+      group-name = mkOption {
+        type = types.str;
+        default = "users";
+        description = "Group of the secret file";
+      };
     };
   });
 in
@@ -90,8 +68,15 @@ in
 
       default-dir = mkOption {
         type = types.str;
-        default = "/var/src/lollypops-secrets";
+        default = "${config.home.homeDirectory}/lollypops-secrets";
         description = "Path to place the secrets on the remote host if no alternative is specified";
+      };
+
+      default-user = mkOption {
+        type = types.str;
+        default = config.home.username;
+        visible = false;
+        readOnly = true;
       };
 
       files = mkOption {
@@ -100,37 +85,7 @@ in
         description = "Attribute set specifying secrets to be deployed";
       };
     };
-
-    # deployment = {
-
-      # local-evaluation = mkOption {
-      #   type = types.bool;
-      #   default = false;
-      #   description = "Evaluate locally instead of on the remote when rebuilding";
-      # };
-
-      # config-dir = mkOption {
-      #   type = types.str;
-      #   default = "/var/src/lollypops";
-      #   description = "Path to place the configuration on the remote host";
-      # };
-
-      # host = mkOption {
-      #   type = types.str;
-      #   default = "${config.networking.hostName}";
-      #   description = "Host to deploy to";
-      #   defaultText = "<config.networking.hostName>";
-      # };
-
-      # user = mkOption {
-      #   type = types.str;
-      #   default = "root";
-      #   description = "User to deploy as";
-      # };
-    # };
   };
 
-  config = {
-     # environment.systemPackages = with pkgs; [ rsync ];
-  };
+  # config = { };
 }
