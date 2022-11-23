@@ -39,7 +39,7 @@
 
                       # Create parent directory if it does not exist
                       ''
-                        set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
+                        set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; sudo -u ${user} mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
                       ''
                       # Copy file
                       ''
@@ -207,8 +207,7 @@
                 flake-utils.lib.mkApp
                   {
                     drv = pkgs.writeShellScriptBin "go-task-runner" ''
-                      # ${pkgs.go-task}/bin/task -t ${taskfile} "$@"
-                      cat ${taskfile}
+                      ${pkgs.go-task}/bin/task -t ${taskfile} "$@"
                     '';
                   };
             };
