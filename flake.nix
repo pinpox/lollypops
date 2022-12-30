@@ -109,7 +109,8 @@
                             ''echo "Deploying secrets to: {{.HOSTNAME}}"''
                           ]
                           ++ mkSeclist hostConfig.config
-                          ++ mkSeclistUser hostConfig.config.home-manager.users;
+                          ++ (if builtins.hasAttr "home-manager" hostConfig.config then
+                            mkSeclistUser hostConfig.config.home-manager.users else [ ]);
                         };
 
                         rebuild = {
