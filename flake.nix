@@ -55,23 +55,7 @@
                 ])
                 homeUsers));
 
-              mkSeclist = config: pkgs.lib.lists.flatten (map
-                (x: [
-                  "echo 'Deploying ${x.name} to ${pkgs.lib.escapeShellArg x.path}'"
-                  # Create parent directory if it does not exist
-                  ''
-                    set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; mkdir -p "$(dirname ${pkgs.lib.escapeShellArg x.path})"'
-                  ''
-                  # Copy file
-                  ''
-                    set -o pipefail -e; ${x.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg x.path}"
-                  ''
-                  # # Set group and owner
-                  ''
-                    set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${x.owner}:${x.group-name} ${pkgs.lib.escapeShellArg x.path}"
-                  ''
-                ])
-                (builtins.attrValues config.lollypops.secrets.files));
+
 
             in
             {
@@ -85,83 +69,121 @@
                       output = "prefixed";
 
                       vars = with hostConfig.config.lollypops; {
-                        REMOTE_USER = deployment.user;
-                        REMOTE_HOST = deployment.host;
+                        REMOTE_USER = deployment.ssh.user;
+                        REMOTE_HOST = deployment.ssh.host;
+                        REMOTE_COMMAND = deployment.ssh.command;
+                        REMOTE_SSH_OPTS = pkgs.lib.concatStrings deployment.ssh.opts;
+                        REMOTE_SUDO_COMMAND = deployment.sudo.command;
+                        REMOTE_SUDO_OPTS = pkgs.lib.concatStrings deployment.sudo.opts;
                         REBUILD_ACTION = ''{{default "switch" .REBUILD_ACTION}}'';
                         REMOTE_CONFIG_DIR = deployment.config-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
                         HOSTNAME = hostName;
                       };
 
-                      tasks = {
+                      tasks =
+                        let
+                          useSudo = hostConfig.config.lollypops.deployment.sudo.enable;
+                        in
+                        with pkgs.lib; {
 
-                        check-vars.preconditions = [{
-                          sh = ''[ ! -z "{{.HOSTNAME}}" ]'';
-                          msg = "HOSTNAME not set: {{.HOSTNAME}}";
-                        }];
+                          check-vars.preconditions = [{
+                            sh = ''[ ! -z "{{.HOSTNAME}}" ]'';
+                            msg = "HOSTNAME not set: {{.HOSTNAME}}";
+                          }];
 
-                        deploy-secrets = {
-                          deps = [ "check-vars" ];
+                          deploy-secrets =
+                            let mkSeclist = config: lists.flatten (map
+                              (x:
+                                let
+                                  path = escapeShellArg x.path;
+                                in
+                                [
+                                  "echo 'Deploying ${x.name} to ${path}'"
 
-                          desc = "Deploy secrets to: ${hostName}";
+                                  # Create parent directory if it does not exist
+                                  ''
+                                    set -o pipefail -e; {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    '${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} install -d -m 077 "$(dirname ${path})"'
+                                  ''
 
-                          cmds = [
-                            ''echo "Deploying secrets to: {{.HOSTNAME}}"''
-                          ]
-                          ++ mkSeclist hostConfig.config
-                          ++ (if builtins.hasAttr "home-manager" hostConfig.config then
-                            mkSeclistUser hostConfig.config.home-manager.users else [ ]);
-                        };
+                                  # Copy file
+                                  ''
+                                    set -o pipefail -e; ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                                    install -m 077 /dev/null ${path}; \
+                                    ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                                    cat > ${path}"
+                                  ''
 
-                        rebuild = {
-                          dir = self;
+                                  # Set group and owner
+                                  ''
+                                    set -o pipefail -e; {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                                    chown ${x.owner}:${x.group-name} ${path}"
+                                  ''
+                                ])
+                              (builtins.attrValues config.lollypops.secrets.files)); in
+                            {
+                              deps = [ "check-vars" ];
 
-                          desc = "Rebuild configuration of: ${hostName}";
-                          deps = [ "check-vars" ];
-                          cmds = [
-                            ''echo "Rebuilding: {{.HOSTNAME}}"''
-                            # For dry-running use `nixos-rebuild dry-activate`
-                            (
-                              if hostConfig.config.lollypops.deployment.local-evaluation then
+                              desc = "Deploy secrets to: ${hostName}";
+
+                              cmds = [
+                                ''echo "Deploying secrets to: {{.HOSTNAME}}"''
+                              ]
+                              ++ mkSeclist hostConfig.config
+                              ++ (if builtins.hasAttr "home-manager" hostConfig.config then
+                                mkSeclistUser hostConfig.config.home-manager.users else [ ]);
+                            };
+
+                          rebuild = {
+                            dir = self;
+
+                            desc = "Rebuild configuration of: ${hostName}";
+                            deps = [ "check-vars" ];
+                            cmds = [
+                              (if hostConfig.config.lollypops.deployment.local-evaluation then
                                 ''
-                                  nixos-rebuild {{.REBUILD_ACTION}} --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}' \
+                                  ${optionalString useSudo ''NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}"''} nixos-rebuild {{.REBUILD_ACTION}} \
+                                    --flake '{{.LOCAL_CONFIG_DIR}}#{{.HOSTNAME}}' \
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                    --build-host root@{{.REMOTE_HOST}}
-                                ''
-                              else
-                                ''
-                                  ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "nixos-rebuild {{.REBUILD_ACTION}} --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
-                                ''
-                            )
-                          ];
-                        };
+                                    ${optionalString useSudo "--use-remote-sudo"}
+                                '' else ''
+                                {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
+                                --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
+                              '')
+                            ];
+                          };
 
-                        deploy-flake = {
+                          deploy-flake = {
 
-                          deps = [ "check-vars" ];
-                          desc = "Deploy flake repository to: ${hostName}";
-                          cmds = [
-                            ''echo "Deploying flake to: {{.HOSTNAME}}"''
-                            ''
-                              source_path={{.LOCAL_FLAKE_SOURCE}}
-                              if test -d "$source_path"; then
-                                source_path=$source_path/
-                              fi
-                              ${pkgs.rsync}/bin/rsync \
-                              --checksum \
-                              --verbose \
-                              -e ssh\ -l\ {{.REMOTE_USER}}\ -T \
-                              -FD \
-                              --times \
-                              --perms \
-                              --recursive \
-                              --links \
-                              --delete-excluded \
-                              $source_path {{.REMOTE_USER}}\@{{.REMOTE_HOST}}:{{.REMOTE_CONFIG_DIR}}
-                            ''
-                          ];
+                            deps = [ "check-vars" ];
+                            desc = "Deploy flake repository to: ${hostName}";
+                            cmds = [
+                              ''echo "Deploying flake to: {{.HOSTNAME}}"''
+                              ''
+                                source_path={{.LOCAL_FLAKE_SOURCE}}
+                                if test -d "$source_path"; then
+                                  source_path=$source_path/
+                                fi
+                                ${pkgs.rsync}/bin/rsync \
+                                --verbose \
+                                -e {{.REMOTE_COMMAND}}\ -l\ {{.REMOTE_USER}}\ -T \
+                                -FD \
+                                --times \
+                                --perms \
+                                --recursive \
+                                --links \
+                                --delete-excluded \
+                                --mkpath \
+                                ${optionalString useSudo ''--rsync-path="{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} rsync" \''}
+                                $source_path {{.REMOTE_USER}}\@{{.REMOTE_HOST}}:{{.REMOTE_CONFIG_DIR}}
+                              ''
+                            ];
+                          };
                         };
-                      };
                     });
 
                   # Taskfile passed to go-task

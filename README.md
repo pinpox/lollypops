@@ -198,9 +198,16 @@ lollypops.deployment = {
   # Where on the remote the configuration (system flake) is placed
   config-dir = "/var/src/lollypops";
 
-  # Ssh connection parameters
-  host = "${config.networking.hostName}";
-  user = "root";
+  # SSH connection parameters
+  ssh.host = "${config.networking.hostName}";
+  ssh.user = "root";
+  ssh.command = "ssh";
+  ssh.opts = [];
+
+  # sudo options
+  sudo.enable = false;
+  sudo.command = "sudo";
+  sudo.opts = [];
 };
 ```
 
@@ -213,6 +220,9 @@ the lollypops module will add the package to `environment.systemPackages` it may
 be missing still on the first deployment. To fix this, either add it to your
 $PATH on the remote side or do your first deployment with
 `lollypops.deployment.local-evaluation` set to `true`.
+
+**Note:** If your flake includes remote Git repositories in its inputs, `git` is
+required to be installed on the remote host.
 
 ### Secrets
 
