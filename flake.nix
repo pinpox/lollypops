@@ -180,7 +180,7 @@
                                 --links \
                                 --delete-excluded \
                                 --mkpath \
-                                ${optionalString useSudo ''--rsync-path="{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} rsync" \''}
+                                ${optionalString useSudo ''--rsync-path="{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} rsync"''} \
                                 $source_path {{.REMOTE_USER}}\@{{.REMOTE_HOST}}:{{.REMOTE_CONFIG_DIR}}
                               ''
                             ];
