@@ -135,8 +135,16 @@
                                 ''echo "Deploying secrets to: {{.HOSTNAME}}"''
                               ]
                               ++ mkSeclist hostConfig.config
-                              ++ (if builtins.hasAttr "home-manager" hostConfig.config then
-                                mkSeclistUser hostConfig.config.home-manager.users else [ ]);
+                              ++ (
+                                # Check for home-manager
+                                if builtins.hasAttr "home-manager" hostConfig.config then
+                                  (
+                                    # Check for lollypops hmModule
+                                    if builtins.hasAttr "lollypops" hostConfig.config.home-manager then
+                                      mkSeclistUser hostConfig.config.home-manager.users else [ ]
+                                  )
+                                else [ ]
+                              );
                             };
 
                           rebuild = {
