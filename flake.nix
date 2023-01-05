@@ -93,37 +93,39 @@
                           }];
 
                           deploy-secrets =
-                            let mkSeclist = config: lists.flatten (map
-                              (x:
-                                let
-                                  path = escapeShellArg x.path;
-                                in
-                                [
-                                  "echo 'Deploying ${x.name} to ${path}'"
+                            let
+                              mkSeclist = config: lists.flatten (map
+                                (x:
+                                  let
+                                    path = escapeShellArg x.path;
+                                  in
+                                  [
+                                    "echo 'Deploying ${x.name} to ${path}'"
 
-                                  # Create parent directory if it does not exist
-                                  ''
-                                    set -o pipefail -e; {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                    '${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} install -d -m 077 "$(dirname ${path})"'
-                                  ''
+                                    # Create parent directory if it does not exist
+                                    ''
+                                      set -o pipefail -e; {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      '${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} install -d -m 700 "$(dirname ${path})"'
+                                    ''
 
-                                  # Copy file
-                                  ''
-                                    set -o pipefail -e; ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                    "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
-                                    install -m 077 /dev/null ${path}; \
-                                    ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
-                                    cat > ${path}"
-                                  ''
+                                    # Copy file
+                                    ''
+                                      set -o pipefail -e; ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                                      install -m 700 /dev/null ${path}; \
+                                      ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                                      cat > ${path}"
+                                    ''
 
-                                  # Set group and owner
-                                  ''
-                                    set -o pipefail -e; {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                    "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
-                                    chown ${x.owner}:${x.group-name} ${path}"
-                                  ''
-                                ])
-                              (builtins.attrValues config.lollypops.secrets.files)); in
+                                    # Set group and owner
+                                    ''
+                                      set -o pipefail -e; {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                                      chown ${x.owner}:${x.group-name} ${path}"
+                                    ''
+                                  ])
+                                (builtins.attrValues config.lollypops.secrets.files));
+                            in
                             {
                               deps = [ "check-vars" ];
 
