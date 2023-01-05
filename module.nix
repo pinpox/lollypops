@@ -95,22 +95,59 @@ in
         description = "Path to place the configuration on the remote host";
       };
 
-      host = mkOption {
-        type = types.str;
-        default = "${config.networking.hostName}";
-        description = "Host to deploy to";
-        defaultText = "<config.networking.hostName>";
+      sudo = {
+
+        enable = mkOption {
+          type = types.bool;
+          default = false;
+          description = "Enables the use of sudo for deployment on remote servers";
+        };
+
+        command = mkOption {
+          type = types.str;
+          default = "sudo";
+          description = "Command to run for permission elevation";
+        };
+
+        opts = mkOption {
+          type = types.listOf types.str;
+          default = [ "" ];
+          example = [ "--user=user" ];
+          description = "Options to pass to the configured sudo command";
+        };
       };
 
-      user = mkOption {
-        type = types.str;
-        default = "root";
-        description = "User to deploy as";
+      ssh = {
+
+        command = mkOption {
+          type = types.str;
+          default = "ssh";
+          description = "Command to run for connection to another server";
+        };
+
+        opts = mkOption {
+          type = types.listOf types.str;
+          default = [ "" ];
+          example = [ "-A" ];
+          description = "Options to pass to the configured SSH command";
+        };
+
+        host = mkOption {
+          type = types.str;
+          default = "${config.networking.hostName}";
+          description = "Host to deploy to";
+        };
+
+        user = mkOption {
+          type = types.str;
+          default = "root";
+          description = "User to deploy as";
+        };
       };
     };
   };
 
   config = {
-     environment.systemPackages = with pkgs; [ rsync ];
+    environment.systemPackages = with pkgs; [ rsync ];
   };
 }
