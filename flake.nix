@@ -39,15 +39,15 @@
 
                       # Create parent directory if it does not exist
                       ''
-                        set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; sudo -u ${user} mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
+                        ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; sudo -u ${user} mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
                       ''
                       # Copy file
                       ''
-                        set -o pipefail -e; ${secretConfig.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg secretConfig.path}"
+                        ${secretConfig.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg secretConfig.path}"
                       ''
                       # # Set group and owner
                       ''
-                        set -o pipefail -e; ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${secretConfig.owner}:${secretConfig.group-name} ${pkgs.lib.escapeShellArg secretConfig.path}"
+                        ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${secretConfig.owner}:${secretConfig.group-name} ${pkgs.lib.escapeShellArg secretConfig.path}"
                       ''
                     ])
                     userconfig.lollypops.secrets.files))
@@ -67,6 +67,12 @@
                     (builtins.toJSON {
                       version = "3";
                       output = "prefixed";
+                      # Set global shell options:
+                      # set -o pipefail -e
+                      set = [
+                        "e"
+                        "pipefail"
+                      ];
 
                       vars = with hostConfig.config.lollypops; {
                         REMOTE_USER = deployment.ssh.user;
@@ -104,13 +110,13 @@
 
                                     # Create parent directory if it does not exist
                                     ''
-                                      set -o pipefail -e; {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                       '${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} install -d -m 700 "$(dirname ${path})"'
                                     ''
 
                                     # Copy file
                                     ''
-                                      set -o pipefail -e; ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                       "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                                       install -m 700 /dev/null ${path}; \
                                       ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
@@ -119,7 +125,7 @@
 
                                     # Set group and owner
                                     ''
-                                      set -o pipefail -e; {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                       "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                                       chown ${x.owner}:${x.group-name} ${path}"
                                     ''
