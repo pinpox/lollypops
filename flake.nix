@@ -188,6 +188,7 @@
                                 --verbose \
                                 -e {{.REMOTE_COMMAND}}\ -l\ {{.REMOTE_USER}}\ -T \
                                 -FD \
+                                --checksum \
                                 --times \
                                 --perms \
                                 --recursive \
