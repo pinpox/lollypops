@@ -120,7 +120,7 @@
                                       "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                                       install -m 700 /dev/null ${path}; \
                                       ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
-                                      cat > ${path}"
+                                      tee ${path} > /dev/null"
                                     ''
 
                                     # Set group and owner
