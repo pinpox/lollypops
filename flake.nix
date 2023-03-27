@@ -75,12 +75,12 @@
                       ];
 
                       vars = with hostConfig.config.lollypops; {
-                        REMOTE_USER = deployment.ssh.user;
-                        REMOTE_HOST = deployment.ssh.host;
-                        REMOTE_COMMAND = deployment.ssh.command;
-                        REMOTE_SSH_OPTS = pkgs.lib.concatStrings deployment.ssh.opts;
-                        REMOTE_SUDO_COMMAND = deployment.sudo.command;
-                        REMOTE_SUDO_OPTS = pkgs.lib.concatStrings deployment.sudo.opts;
+                        REMOTE_USER = ''{{default "${deployment.ssh.user}" .REMOTE_USER}}'';
+                        REMOTE_HOST = ''{{default "${deployment.ssh.host}" .REMOTE_HOST}}'';
+                        REMOTE_COMMAND = ''{{default "${deployment.ssh.command}" .REMOTE_COMMAND}}'';
+                        REMOTE_SSH_OPTS = ''{{default "${pkgs.lib.concatStrings deployment.ssh.opts}" .REMOTE_SSH_OPTS}}'';
+                        REMOTE_SUDO_COMMAND = ''{{default "${deployment.sudo.command}" .REMOTE_SUDO_COMMAND}}'';
+                        REMOTE_SUDO_OPTS = ''{{default "${pkgs.lib.concatStrings deployment.sudo.opts}" .REMOTE_SUDO_OPTS}}'';
                         REBUILD_ACTION = ''{{default "switch" .REBUILD_ACTION}}'';
                         REMOTE_CONFIG_DIR = deployment.config-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
