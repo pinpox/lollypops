@@ -36,6 +36,7 @@ Lollypops is inspired by [krops](https://github.com/krebs/krops) and [colmena](h
 - Secret provisioning from any source (e.g. [pass](https://www.passwordstore.org/),
   [bitwarden](https://bitwarden.com/), plaintext files...)
 - Fully flake compatible
+- Customisable build/deployment tasks
 
 ## Usage
 
@@ -291,6 +292,46 @@ lollypops.secrets = {
   files."usertest" = { };
 };
 ```
+
+### Customising tasks
+
+You can also choose which tasks you want to run, define your own tasks, or even override the default tasks:
+```nix
+lollypops.tasks = [ "deploy-secrets" "example" "rebuild" ];
+lollypops.extraTasks = {
+  example = {
+    desc = "An example task";
+    cmds = [ "echo 'this is a task'" ];
+  };
+
+  rebuild = {
+    dir = ".";
+    deps = [ "example" ];
+    desc = "Rebuild configuration of: example-host";
+    cmds = [
+      ''
+        nix build -L \
+        ${self}#nixosConfigurations.example-host.config.system.build.toplevel && \
+        REAL_PATH=$(realpath ./result) && \
+        nix copy -s --to ssh://user@example-host $REAL_PATH 2>&1 && \
+        ssh user@example-host \
+        "sudo nix-env -p /nix/var/nix/profiles/system --set $REAL_PATH && \
+        sudo /nix/var/nix/profiles/system/bin/switch-to-configuration switch"
+      ''
+    ];
+  };
+};
+```
+
+In this example, the user has outlined that the `deploy-secrets`, `example` and `rebuild` tasks should run for this host.  
+They have set the `rebuild` task to only run after the `example` task has finished successfully by using the `deps` keyword.
+Since `rebuild` is the name of one of the default tasks set to run (`deploy-secrets`, `deploy-flake` & `rebuild`) they are
+opting to override the default definition and instead define how they'd like to run a "rebuild" - in this case, they are
+relying on `nix build` to run locally, then copying the resulting closure to the remote machine and eventually switching the
+remote `system` profile to it. This is a useful example for cases where the remote machine is a very low resource system.
+
+It's worth noting, since the build takes place on the local system, it's not necessary to run the `deploy-flake` task, so it
+is omitted from the `lollypops.tasks` list.
 
 ### Debugging
 

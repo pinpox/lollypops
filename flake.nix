@@ -200,7 +200,7 @@
                               ''
                             ];
                           };
-                        };
+                        } // hostConfig.config.lollypops.extraTasks;
                     });
 
                   # Taskfile passed to go-task
@@ -230,12 +230,7 @@
                         (name: value:
                           {
                             desc = "Provision host: ${name}";
-                            cmds = [
-                              # TODO make these configurable, set these three as default in the module
-                              { task = "${name}:deploy-flake"; }
-                              { task = "${name}:deploy-secrets"; }
-                              { task = "${name}:rebuild"; }
-                            ];
+                            cmds = map (task: { task = "${name}:${task}"; }) value.config.lollypops.tasks;
                           })
                         configFlake.nixosConfigurations // {
                         # Add special task called "all" which has all hosts as
