@@ -39,7 +39,7 @@
 
                       # Create parent directory if it does not exist
                       ''
-                        ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 077; sudo -u ${user} mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
+                        ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 076; sudo -u ${user} mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
                       ''
                       # Copy file
                       ''
@@ -111,7 +111,7 @@
                                     # Create parent directory if it does not exist
                                     ''
                                       {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                      '${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} install -d -m 700 "$(dirname ${path})"'
+                                      'umask 076; ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} mkdir -p "$(dirname ${path})"'
                                     ''
 
                                     # Copy file
