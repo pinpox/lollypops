@@ -95,6 +95,12 @@ in
         description = "Path to place the configuration on the remote host";
       };
 
+      group = mkOption {
+        type = types.str;
+        default = "default";
+        description = "Group name for the host, used to perform actions against a group of servers";
+      };
+
       sudo = {
 
         enable = mkOption {

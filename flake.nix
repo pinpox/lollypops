@@ -203,6 +203,20 @@
                         } // hostConfig.config.lollypops.extraTasks;
                     });
 
+
+                  # Group hosts by their group name
+                  hostGroups = let
+                    processHost = currentGroups: host:
+                      let
+                        groupName = host.config.lollypops.deployment.group;
+                        existing = currentGroups."${groupName}" or [ ];
+                      in
+                        # Either add the host to an existing group or create a new group list
+                        currentGroups // { ${groupName} = existing ++ [ host.config.system.name ]; };
+                  in
+                    builtins.foldl' processHost { } (builtins.attrValues configFlake.nixosConfigurations);
+
+
                   # Taskfile passed to go-task
                   taskfile = pkgs.writeText
                     "Taskfile.yml"
@@ -213,7 +227,7 @@
                       # Don't print excuted commands. Can be overridden by -v
                       silent = true;
 
-                      # Import the taks once for each host, setting the HOST
+                      # Import the tasks once for each host, setting the HOST
                       # variable. This allows running them as `host:task` for
                       # each host individually.
                       includes = builtins.mapAttrs
@@ -226,15 +240,21 @@
                       # Define grouped tasks to run all tasks for one host.
                       # E.g. to make a complete deployment for host "server01":
                       # `nix run '.' -- server01
+
                       tasks = builtins.mapAttrs
                         (name: value:
                           {
                             desc = "Provision host: ${name}";
                             cmds = map (task: { task = "${name}:${task}"; }) value.config.lollypops.tasks;
                           })
-                        configFlake.nixosConfigurations // {
+                        configFlake.nixosConfigurations // builtins.mapAttrs
+                        (groupName: hosts:
+                          {
+                            desc = "Provision group: ${groupName}";
+                            deps = map (host: { task = "${host}"; }) hosts;
+                          }) hostGroups // {
                         # Add special task called "all" which has all hosts as
-                        # dependency to deploy all hosts at onece
+                        # dependency to deploy all hosts at once
                         all.deps = map (x: { task = x; }) (builtins.attrNames configFlake.nixosConfigurations);
                       };
                     });
