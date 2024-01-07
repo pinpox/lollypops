@@ -186,13 +186,6 @@ in
   };
 
   config = {
-    assertions = [
-      {
-        assertion = cfg.deployment.local-evaluation -> !cfg.deployment.sudo.enable;
-        message = "You cannot combine `lollypops.deployment.local-evaluation` " +
-          "with `lollypops.deployment.sudo.enable`.";
-      }
-    ];
     environment.systemPackages = with pkgs; [ rsync ];
   };
 }
