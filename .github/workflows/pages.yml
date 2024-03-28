@@ -1,10 +1,10 @@
 # Sample workflow for building and deploying a Hugo site to GitHub Pages
-name: Deploy Hugo site to Pages
+name: Deploy Documentation to Pages
 
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: 
+    branches:
       - "main"
       - 'github-pages'
 
@@ -46,12 +46,11 @@ jobs:
         uses: cachix/install-nix-action@v15
       - name: Build with Nix
         run: |
-          nix flake check
-          touch index
+         nix build '.#docs'
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./public
+          path: ./result
 
   # Deployment job
   deploy:
