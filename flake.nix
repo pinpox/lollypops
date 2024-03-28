@@ -24,6 +24,26 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         {
+
+          packages = rec {
+            default = docs;
+            docs = pkgs.callPackage ./docs.nix {
+              filterPrefix = "lollypops";
+              title = "Lollypops options";
+              modules = [
+                (import ./module.nix {
+                  inherit pkgs;
+                  lib = pkgs.lib;
+                  config.networking.hostName = "hostname";
+                })
+                {
+                  # Fake this so depending options documentation don't fail
+                  options.environment = pkgs.lib.mkOption { description = "test"; };
+                }
+              ];
+            };
+          };
+
           # Allow custom packages to be run using `nix run`
           apps =
             let
@@ -205,15 +225,16 @@
 
 
                   # Group hosts by their group name
-                  hostGroups = let
-                    processHost = currentGroups: host:
-                      let
-                        groupName = host.config.lollypops.deployment.group;
-                        existing = currentGroups."${groupName}" or [ ];
-                      in
+                  hostGroups =
+                    let
+                      processHost = currentGroups: host:
+                        let
+                          groupName = host.config.lollypops.deployment.group;
+                          existing = currentGroups."${groupName}" or [ ];
+                        in
                         # Either add the host to an existing group or create a new group list
                         currentGroups // { ${groupName} = existing ++ [ host.config.system.name ]; };
-                  in
+                    in
                     builtins.foldl' processHost { } (builtins.attrValues configFlake.nixosConfigurations);
 
 
@@ -252,7 +273,8 @@
                           {
                             desc = "Provision group: ${groupName}";
                             deps = map (host: { task = "${host}"; }) hosts;
-                          }) hostGroups // {
+                          })
+                        hostGroups // {
                         # Add special task called "all" which has all hosts as
                         # dependency to deploy all hosts at once
                         all.deps = map (x: { task = x; }) (builtins.attrNames configFlake.nixosConfigurations);
