@@ -28,11 +28,13 @@
           packages = rec {
             default = docs;
             docs = pkgs.callPackage ./docs.nix {
+              filterPrefix = "lollypops";
+              title = "Lollypops options";
               modules = [
                 (import ./module.nix {
                   inherit pkgs;
                   lib = pkgs.lib;
-                  config.networking.hostName = "name";
+                  config.networking.hostName = "hostname";
                 })
                 {
                   # Fake this so depending options don't fail
