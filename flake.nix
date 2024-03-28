@@ -37,10 +37,8 @@
                   config.networking.hostName = "hostname";
                 })
                 {
-                  # Fake this so depending options don't fail
-                  options.environment = pkgs.lib.mkOption {
-                    description = "test";
-                  };
+                  # Fake this so depending options documentation don't fail
+                  options.environment = pkgs.lib.mkOption { description = "test"; };
                 }
               ];
             };
