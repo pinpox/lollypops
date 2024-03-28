@@ -9,6 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/pinpox/lollypops/actions/workflows/nix.yml"><img src="https://github.com/pinpox/lollypops/actions/workflows/nix.yml/badge.svg" alt="Contributors badge" /></a>
+  <a href="https://pinpox.github.io/lollypops"><img src="https://img.shields.io/badge/Documentation-Nix_Options-blue.svg" alt="Documentations badge" /></a>
 </p>
 
 Lollypops is a NixOS deployment tool build as a thin, pure nix wrapper around
