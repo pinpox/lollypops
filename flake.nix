@@ -186,7 +186,7 @@
                                 fi
                                 ${pkgs.rsync}/bin/rsync \
                                 --verbose \
-                                -e {{.REMOTE_COMMAND}}\ -l\ {{.REMOTE_USER}}\ -T \
+                                -e "{{.REMOTE_COMMAND}} -l {{.REMOTE_USER}} -T {{.REMOTE_SSH_OPTS}}" \
                                 -FD \
                                 --checksum \
                                 --times \
