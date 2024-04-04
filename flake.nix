@@ -59,15 +59,15 @@
 
                       # Create parent directory if it does not exist
                       ''
-                        ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 076; sudo -u ${user} mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
+                        {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} 'umask 076; sudo -u ${user} mkdir -p "$(dirname ${pkgs.lib.escapeShellArg secretConfig.path})"'
                       ''
                       # Copy file
                       ''
-                        ${secretConfig.cmd} | ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg secretConfig.path}"
+                        ${secretConfig.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg secretConfig.path}"
                       ''
                       # # Set group and owner
                       ''
-                        ssh {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${secretConfig.owner}:${secretConfig.group-name} ${pkgs.lib.escapeShellArg secretConfig.path}"
+                        {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${secretConfig.owner}:${secretConfig.group-name} ${pkgs.lib.escapeShellArg secretConfig.path}"
                       ''
                     ])
                     userconfig.lollypops.secrets.files))
@@ -130,13 +130,13 @@
 
                                     # Create parent directory if it does not exist
                                     ''
-                                      {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                       'umask 076; ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} mkdir -p "$(dirname ${path})"'
                                     ''
 
                                     # Copy file
                                     ''
-                                      ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                       "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                                       install -m 700 /dev/null ${path}; \
                                       ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
@@ -145,7 +145,7 @@
 
                                     # Set group and owner
                                     ''
-                                      {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                       "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                                       chown ${x.owner}:${x.group-name} ${path}"
                                     ''
@@ -186,7 +186,7 @@
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                     ${optionalString useSudo "--use-remote-sudo"}
                                 '' else ''
-                                {{.REMOTE_COMMAND}} {{.REMOTE_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                 "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
                                 --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
                               '')
@@ -206,7 +206,7 @@
                                 fi
                                 ${pkgs.rsync}/bin/rsync \
                                 --verbose \
-                                -e {{.REMOTE_COMMAND}}\ -l\ {{.REMOTE_USER}}\ -T \
+                                -e "{{.REMOTE_COMMAND}} -l {{.REMOTE_USER}} -T {{.REMOTE_SSH_OPTS}}" \
                                 -FD \
                                 --checksum \
                                 --times \
