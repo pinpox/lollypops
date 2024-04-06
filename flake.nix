@@ -104,6 +104,7 @@
                         REBUILD_ACTION = ''{{default "switch" .REBUILD_ACTION}}'';
                         REMOTE_CONFIG_DIR = deployment.config-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
+                        LOCAL_EVALUATION = ''{{default "${pkgs.lib.optionalString deployment.local-evaluation "true"}" .LP_LOCAL_EVALUATION}}'';
                         HOSTNAME = hostName;
                       };
 
@@ -179,17 +180,19 @@
                             desc = "Rebuild configuration of: ${hostName}";
                             deps = [ "check-vars" ];
                             cmds = [
-                              (if hostConfig.config.lollypops.deployment.local-evaluation then
-                                ''
-                                  ${optionalString useSudo ''NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}"''} nixos-rebuild {{.REBUILD_ACTION}} \
+                              ''
+                                if [ "{{.LOCAL_EVALUATION}}" = "true" ]
+                                then
+                                  NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nixos-rebuild {{.REBUILD_ACTION}} \
                                     --flake '{{.LOCAL_FLAKE_SOURCE}}#{{.HOSTNAME}}' \
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                     ${optionalString useSudo "--use-remote-sudo"}
-                                '' else ''
-                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
-                                --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
-                              '')
+                                else
+                                  {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
+                                    --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
+                                fi
+                              ''
                             ];
                           };
 
