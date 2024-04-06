@@ -51,6 +51,10 @@ let
 in
 {
 
+  imports = [
+    (mkRemovedOptionModule ["lollypops" "deployment" "config-dir"] "The flake is now stored in the Nix store directly.")
+  ];
+
   options.lollypops = {
 
     secrets = {
@@ -87,12 +91,6 @@ in
         type = types.bool;
         default = false;
         description = "Evaluate locally instead of on the remote when rebuilding";
-      };
-
-      config-dir = mkOption {
-        type = types.str;
-        default = "/var/src/lollypops";
-        description = "Path to place the configuration on the remote host";
       };
 
       group = mkOption {

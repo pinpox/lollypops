@@ -197,9 +197,6 @@ a lot of cases.
 
 ```nix
 lollypops.deployment = {
-  # Where on the remote the configuration (system flake) is placed
-  config-dir = "/var/src/lollypops";
-
   # SSH connection parameters
   ssh.host = "${config.networking.hostName}";
   ssh.user = "root";

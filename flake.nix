@@ -102,7 +102,6 @@
                         REMOTE_SUDO_COMMAND = ''{{default "${deployment.sudo.command}" .LP_REMOTE_SUDO_COMMAND}}'';
                         REMOTE_SUDO_OPTS = ''{{default "${pkgs.lib.concatStrings deployment.sudo.opts}" .LP_REMOTE_SUDO_OPTS}}'';
                         REBUILD_ACTION = ''{{default "switch" .REBUILD_ACTION}}'';
-                        REMOTE_CONFIG_DIR = deployment.config-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
                         HOSTNAME = hostName;
                       };
@@ -186,11 +185,9 @@
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                     ${optionalString useSudo "--use-remote-sudo"}
                                 '' else ''
-                                flake="$({{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} readlink -f '{{.REMOTE_CONFIG_DIR}}/flake'")"
                                 {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                   "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
-                                  --flake '$flake#{{.HOSTNAME}}'"
+                                  --flake '{{.LOCAL_FLAKE_SOURCE}}#{{.HOSTNAME}}'"
                               '')
                             ];
                           };
@@ -202,17 +199,9 @@
                             cmds = [
                               ''echo "Deploying flake to: {{.HOSTNAME}}"''
                               ''
-                                flake="$(NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" \
-                                  nix flake archive \
+                                NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix flake archive \
                                   --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  --json \
-                                  {{.LOCAL_FLAKE_SOURCE}} \
-                                  | ${pkgs.jq}/bin/jq -r .path\
-                                )"
-                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} mkdir -p \"{{.REMOTE_CONFIG_DIR}}\""
-                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -snf \"$flake\" \"{{.REMOTE_CONFIG_DIR}}/flake\""
+                                  {{.LOCAL_FLAKE_SOURCE}}
                               ''
                             ];
                           };
