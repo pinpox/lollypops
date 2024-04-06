@@ -217,14 +217,8 @@ Setting `lollypops.deployment.local-evaluation` to true, will result in
 evaluation being done on the local side. This requires `nixos-rebuild` in your
 `$PATH`
 
-**Note:** Rsync is required on the remote for remote evaluation to work. While
-the lollypops module will add the package to `environment.systemPackages` it may
-be missing still on the first deployment. To fix this, either add it to your
-$PATH on the remote side or do your first deployment with
-`lollypops.deployment.local-evaluation` set to `true`.
-
-**Note:** If your flake includes remote Git repositories in its inputs, `git` is
-required to be installed on the remote host.
+**Note:** If using `sudo`, the user you're connecting as still needs to be able
+to access the Nix daemon. This is the default in NixOS.
 
 ### Secrets
 

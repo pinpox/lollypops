@@ -186,9 +186,11 @@
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                     ${optionalString useSudo "--use-remote-sudo"}
                                 '' else ''
+                                flake="$({{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} readlink -f '{{.REMOTE_CONFIG_DIR}}/flake'")"
                                 {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
-                                --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
+                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
+                                  --flake '$flake#{{.HOSTNAME}}'"
                               '')
                             ];
                           };
@@ -200,23 +202,17 @@
                             cmds = [
                               ''echo "Deploying flake to: {{.HOSTNAME}}"''
                               ''
-                                source_path={{.LOCAL_FLAKE_SOURCE}}
-                                if test -d "$source_path"; then
-                                  source_path=$source_path/
-                                fi
-                                ${pkgs.rsync}/bin/rsync \
-                                --verbose \
-                                -e "{{.REMOTE_COMMAND}} -l {{.REMOTE_USER}} -T {{.REMOTE_SSH_OPTS}}" \
-                                -FD \
-                                --checksum \
-                                --times \
-                                --perms \
-                                --recursive \
-                                --links \
-                                --delete-excluded \
-                                --mkpath \
-                                ${optionalString useSudo ''--rsync-path="{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} rsync"''} \
-                                $source_path {{.REMOTE_USER}}\@{{.REMOTE_HOST}}:{{.REMOTE_CONFIG_DIR}}
+                                flake="$(NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" \
+                                  nix flake archive \
+                                  --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                  --json \
+                                  {{.LOCAL_FLAKE_SOURCE}} \
+                                  | ${pkgs.jq}/bin/jq -r .path\
+                                )"
+                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} mkdir -p \"{{.REMOTE_CONFIG_DIR}}\""
+                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -snf \"$flake\" \"{{.REMOTE_CONFIG_DIR}}/flake\""
                               ''
                             ];
                           };
