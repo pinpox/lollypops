@@ -181,7 +181,7 @@
                             cmds = [
                               (if hostConfig.config.lollypops.deployment.local-evaluation then
                                 ''
-                                  ${optionalString useSudo ''NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}"''} nixos-rebuild {{.REBUILD_ACTION}} \
+                                  NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nixos-rebuild {{.REBUILD_ACTION}} \
                                     --flake '{{.LOCAL_FLAKE_SOURCE}}#{{.HOSTNAME}}' \
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                     ${optionalString useSudo "--use-remote-sudo"}
