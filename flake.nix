@@ -102,6 +102,7 @@
                         REMOTE_SUDO_COMMAND = ''{{default "${deployment.sudo.command}" .LP_REMOTE_SUDO_COMMAND}}'';
                         REMOTE_SUDO_OPTS = ''{{default "${pkgs.lib.concatStrings deployment.sudo.opts}" .LP_REMOTE_SUDO_OPTS}}'';
                         REBUILD_ACTION = ''{{default "switch" .REBUILD_ACTION}}'';
+                        REMOTE_CONFIG_DIR = deployment.config-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
                         HOSTNAME = hostName;
                       };
@@ -187,7 +188,7 @@
                                 '' else ''
                                 {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                   "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
-                                  --flake '{{.LOCAL_FLAKE_SOURCE}}#{{.HOSTNAME}}'"
+                                  --flake "$(readlink -f {{.REMOTE_CONFIG_DIR}}/flake)#{{.HOSTNAME}}""
                               '')
                             ];
                           };
@@ -202,6 +203,10 @@
                                 NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix flake archive \
                                   --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                   {{.LOCAL_FLAKE_SOURCE}}
+                              ''
+                              ''
+                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -sfn {{.LOCAL_FLAKE_SOURCE}} {{.REMOTE_CONFIG_DIR}}/flake"
                               ''
                             ];
                           };
@@ -230,7 +235,7 @@
                       version = "3";
                       output = "prefixed";
 
-                      # Don't print excuted commands. Can be overridden by -v
+                      # Don't print executed commands. Can be overridden by -v
                       silent = true;
 
                       # Import the tasks once for each host, setting the HOST
