@@ -186,11 +186,9 @@
                                     --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                     ${optionalString useSudo "--use-remote-sudo"}
                                 '' else ''
-                                flake="$({{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} readlink -f '{{.REMOTE_CONFIG_DIR}}/flake'")"
                                 {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                   "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
-                                  --flake '$flake#{{.HOSTNAME}}'"
+                                  --flake "$(readlink -f {{.REMOTE_CONFIG_DIR}}/flake)#{{.HOSTNAME}
                               '')
                             ];
                           };
@@ -202,17 +200,13 @@
                             cmds = [
                               ''echo "Deploying flake to: {{.HOSTNAME}}"''
                               ''
-                                flake="$(NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" \
-                                  nix flake archive \
+                                NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix flake archive \
                                   --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  --json \
-                                  {{.LOCAL_FLAKE_SOURCE}} \
-                                  | ${pkgs.jq}/bin/jq -r .path\
-                                )"
+                                  {{.LOCAL_FLAKE_SOURCE}}
+                              ''
+                              ''
                                 {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} mkdir -p \"{{.REMOTE_CONFIG_DIR}}\""
-                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -snf \"$flake\" \"{{.REMOTE_CONFIG_DIR}}/flake\""
+                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -sfn {{.LOCAL_FLAKE_SOURCE}} {{.REMOTE_CONFIG_DIR}}/flake"
                               ''
                             ];
                           };
@@ -241,7 +235,7 @@
                       version = "3";
                       output = "prefixed";
 
-                      # Don't print excuted commands. Can be overridden by -v
+                      # Don't print executed commands. Can be overridden by -v
                       silent = true;
 
                       # Import the tasks once for each host, setting the HOST
