@@ -199,12 +199,22 @@
                             desc = "Deploy flake repository to: ${hostName}";
                             cmds = [
                               ''echo "Deploying flake to: {{.HOSTNAME}}"''
-                              ''
-                                NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix flake archive \
-                                  --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                  --option builders-use-substitutes true \
-                                  {{.LOCAL_FLAKE_SOURCE}}
-                              ''
+                              (if  hostConfig.config.lollypops.deployment.deploy-method == "archive" then
+                                ''
+                                  NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix flake archive \
+                                    --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    --option builders-use-substitutes true \
+                                    {{.LOCAL_FLAKE_SOURCE}}
+                                ''
+                              else
+                                ''
+                                  NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix copy \
+                                    --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    --substitute-on-destination \
+                                    --option builders-use-substitutes true \
+                                    {{.LOCAL_FLAKE_SOURCE}}
+                                ''
+                              )
                               ''
                                 {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                   "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -sfn {{.LOCAL_FLAKE_SOURCE}} {{.REMOTE_CONFIG_DIR}}/flake"
