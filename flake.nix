@@ -202,6 +202,7 @@
                               ''
                                 NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix flake archive \
                                   --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                  --option builders-use-substitutes true \
                                   {{.LOCAL_FLAKE_SOURCE}}
                               ''
                               ''
