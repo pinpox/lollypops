@@ -89,6 +89,21 @@ in
         description = "Evaluate locally instead of on the remote when rebuilding";
       };
 
+      deploy-method = mkOption {
+        type = types.enum [ "copy" "archive" ];
+        default = "copy";
+        description = ''
+          Method for copying flake to the remote. Using the default (`copy`) will
+          only deploy the flake itself, while `archive` deploys the flake and
+          all it's inputs to the remote machine. This is slower when deploying
+          from a connection with slow upload speed, but allows using inputs
+          which are not accessible from the remote.
+
+          When using `copy` all inputs of the flake will be substituted or
+          pulled from configured caches.
+        '';
+      };
+
       config-dir = mkOption {
         type = types.str;
         default = "/var/src/lollypops";
@@ -189,9 +204,5 @@ in
       '';
 
     };
-  };
-
-  config = {
-    environment.systemPackages = with pkgs; [ rsync ];
   };
 }

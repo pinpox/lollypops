@@ -187,8 +187,8 @@
                                     ${optionalString useSudo "--use-remote-sudo"}
                                 '' else ''
                                 {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                                "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
-                                --flake '{{.REMOTE_CONFIG_DIR}}#{{.HOSTNAME}}'"
+                                  '${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
+                                  --flake "$(readlink -f {{.REMOTE_CONFIG_DIR}}/flake)#{{.HOSTNAME}}"'
                               '')
                             ];
                           };
@@ -199,24 +199,25 @@
                             desc = "Deploy flake repository to: ${hostName}";
                             cmds = [
                               ''echo "Deploying flake to: {{.HOSTNAME}}"''
+                              (if  hostConfig.config.lollypops.deployment.deploy-method == "archive" then
+                                ''
+                                  NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix flake archive \
+                                    --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    --option builders-use-substitutes true \
+                                    {{.LOCAL_FLAKE_SOURCE}}
+                                ''
+                              else
+                                ''
+                                  NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}" nix copy \
+                                    --to ssh://{{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                    --substitute-on-destination \
+                                    --option builders-use-substitutes true \
+                                    {{.LOCAL_FLAKE_SOURCE}}
+                                ''
+                              )
                               ''
-                                source_path={{.LOCAL_FLAKE_SOURCE}}
-                                if test -d "$source_path"; then
-                                  source_path=$source_path/
-                                fi
-                                ${pkgs.rsync}/bin/rsync \
-                                --verbose \
-                                -e "{{.REMOTE_COMMAND}} -l {{.REMOTE_USER}} -T {{.REMOTE_SSH_OPTS}}" \
-                                -FD \
-                                --checksum \
-                                --times \
-                                --perms \
-                                --recursive \
-                                --links \
-                                --delete-excluded \
-                                --mkpath \
-                                ${optionalString useSudo ''--rsync-path="{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} rsync"''} \
-                                $source_path {{.REMOTE_USER}}\@{{.REMOTE_HOST}}:{{.REMOTE_CONFIG_DIR}}
+                                {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                  "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -sfn {{.LOCAL_FLAKE_SOURCE}} {{.REMOTE_CONFIG_DIR}}/flake"
                               ''
                             ];
                           };
@@ -245,7 +246,7 @@
                       version = "3";
                       output = "prefixed";
 
-                      # Don't print excuted commands. Can be overridden by -v
+                      # Don't print executed commands. Can be overridden by -v
                       silent = true;
 
                       # Import the tasks once for each host, setting the HOST
