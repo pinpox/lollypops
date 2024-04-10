@@ -200,6 +200,8 @@ lollypops.deployment = {
   # Where on the remote the configuration (system flake) is placed
   config-dir = "/var/src/lollypops";
 
+  deploy-method = "copy";
+
   # SSH connection parameters
   ssh.host = "${config.networking.hostName}";
   ssh.user = "root";
@@ -216,6 +218,28 @@ lollypops.deployment = {
 Setting `lollypops.deployment.local-evaluation` to true, will result in
 evaluation being done on the local side. This requires `nixos-rebuild` in your
 `$PATH`
+
+#### Deployment method
+
+lollypops supports two methods of copying the flake to the remote machine when
+deploying. Both are nix native tooling and don't require any further
+dependencies, but may be suited in different cases. Use the
+`lollypops.deployment.deploy-method` option to select what should be used.
+
+1. `copy`: This is the default. It will only copy the flake itself during the
+   `deploy-flake` task. It will usually be faster when deploying from a home
+   internet connection, as all the dependencies are later downloaded from caches
+   by nix instead of being uploaded directly from the local machine to the
+   remote. It requires the remote machine to be able to access all flake inputs
+   that, e.g. private repositories which may be required for the build.
+2. `archvie`: This method uses [nix flake
+   archive](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-flake-archive)
+   to copy the flake **and** it's inputs to the remote. Everything will be
+   copied from the local machine to the remote. This ensures that everything
+   needed for the rebuild is already on the remote when it starts, theoretically
+   making it even possible to rebuild without internet access. It also allows
+   rebuilding when private repositories are required as inputs.
+   If you have a slow upload speed on your local machine, it may take longer.
 
 **Note:** If using `sudo`, the user you're connecting as still needs to be able
 to access the Nix daemon. This is the default in NixOS.
