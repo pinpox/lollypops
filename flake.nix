@@ -95,7 +95,8 @@
                       ];
 
                       vars = with hostConfig.config.lollypops; {
-                        REMOTE_USER = ''{{default "${deployment.ssh.user}" .LP_REMOTE_USER}}'';
+                        REMOTE_USER = if deployment.ssh.user == null then ''{{.USER}}''
+                                      else ''{{default "${deployment.ssh.user}" .LP_REMOTE_USER}}'';
                         REMOTE_HOST = ''{{default "${deployment.ssh.host}" .LP_REMOTE_HOST}}'';
                         REMOTE_COMMAND = ''{{default "${deployment.ssh.command}" .LP_REMOTE_COMMAND}}'';
                         REMOTE_SSH_OPTS = ''{{default "${pkgs.lib.concatStrings deployment.ssh.opts}" .LP_REMOTE_SSH_OPTS}}'';
