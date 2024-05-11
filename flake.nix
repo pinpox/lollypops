@@ -65,9 +65,13 @@
                       ''
                         ${secretConfig.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} "umask 077; cat > ${pkgs.lib.escapeShellArg secretConfig.path}"
                       ''
-                      # # Set group and owner
+                      # Set group and owner
                       ''
                         {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chown ${secretConfig.owner}:${secretConfig.group-name} ${pkgs.lib.escapeShellArg secretConfig.path}"
+                      ''
+                      # Set mode
+                      ''
+                        {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} "chmod ${secretConfig.mode} ${pkgs.lib.escapeShellArg secretConfig.path}"
                       ''
                     ])
                     userconfig.lollypops.secrets.files))
@@ -148,6 +152,13 @@
                                       {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                       "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                                       chown ${x.owner}:${x.group-name} ${path}"
+                                    ''
+
+                                    # Set group and owner
+                                    ''
+                                      {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                                      chmod ${x.mode} ${path}"
                                     ''
                                   ])
                                 (builtins.attrValues config.lollypops.secrets.files));
