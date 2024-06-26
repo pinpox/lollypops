@@ -160,9 +160,15 @@ in
         };
 
         user = mkOption {
-          type = types.str;
+          type = types.nullOr types.str;
           default = "root";
-          description = "User to deploy as";
+          description = ''
+            User to deploy as.
+
+            If set to <literal>null</literal>, uses the name of the user that
+            invoked <literal>lollypops</literal>, as set by the
+            <literal>USER</literal> environment variable.
+          '';
         };
       };
     };
