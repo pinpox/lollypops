@@ -51,6 +51,17 @@ let
 in
 {
 
+  config = {
+
+    assertions = [
+      {
+        assertion = !(cfg.deployment.group != "default" && cfg.deployment.groups != [ "default" ]);
+        message = "Only one of options `group` (deprecated) or `groups` can be set";
+      }
+    ];
+
+  };
+
   options.lollypops = {
 
     secrets = {
@@ -113,7 +124,16 @@ in
       group = mkOption {
         type = types.str;
         default = "default";
-        description = "Group name for the host, used to perform actions against a group of servers";
+        description = ''
+          Deprecated - use `groups` instead, where multiple group names can be specified.
+          Group name for the host, used to perform actions against a group of servers
+        '';
+      };
+
+      groups = mkOption {
+        type = types.listOf types.str;
+        default = [ "default" ];
+        description = "List of group names for the host, used to perform actions against a group of servers";
       };
 
       sudo = {

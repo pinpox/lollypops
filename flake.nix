@@ -225,16 +225,24 @@
                     });
 
 
-                  # Group hosts by their group name
+                  # Group hosts by their group names
                   hostGroups =
                     let
                       processHost = currentGroups: host:
                         let
-                          groupName = host.config.lollypops.deployment.group;
-                          existing = currentGroups."${groupName}" or [ ];
+                          legacyGroupName = host.config.lollypops.deployment.group;
+                          groupNames =
+                            if legacyGroupName != "default" then
+                              [ legacyGroupName ]
+                            else host.config.lollypops.deployment.groups;
+                          processHostStep = currentGroups: groupName:
+                            let
+                              existing = currentGroups."${groupName}" or [ ];
+                            in
+                            # Either add the host to an existing group or create a new group list
+                            currentGroups // { "${groupName}" = existing ++ [ host.config.system.name ]; };
                         in
-                        # Either add the host to an existing group or create a new group list
-                        currentGroups // { ${groupName} = existing ++ [ host.config.system.name ]; };
+                        builtins.foldl' processHostStep currentGroups groupNames;
                     in
                     builtins.foldl' processHost { } (builtins.attrValues configFlake.nixosConfigurations);
 
