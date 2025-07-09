@@ -1,7 +1,7 @@
 # lollypops
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/1719781/176185996-f7bd3919-df7f-4684-b464-46b414b46483.png" height="200"/>  
+  <img src="https://user-images.githubusercontent.com/1719781/176185996-f7bd3919-df7f-4684-b464-46b414b46483.png" height="200"/>
 </p>
 <p align="center">
   Lollypop Operations - NixOS Deployment Tool
@@ -247,7 +247,7 @@ to access the Nix daemon. This is the default in NixOS.
 ### Secrets
 
 Secrets are specified as attribute set under `lollypops.secrets.files`. All
-parameters are optional and can be omitted except the name. In it's default
+parameters are optional and can be omitted. In it's default
 configuration `pass` will be used to search for the secret placing it in
 `/run/keys/secretname` with permissions `0400` owned by `root:root`.
 
@@ -342,7 +342,7 @@ lollypops.extraTasks = {
 };
 ```
 
-In this example, the user has outlined that the `deploy-secrets`, `example` and `rebuild` tasks should run for this host.  
+In this example, the user has outlined that the `deploy-secrets`, `example` and `rebuild` tasks should run for this host.
 They have set the `rebuild` task to only run after the `example` task has finished successfully by using the `deps` keyword.
 Since `rebuild` is the name of one of the default tasks set to run (`deploy-secrets`, `deploy-flake` & `rebuild`) they are
 opting to override the default definition and instead define how they'd like to run a "rebuild" - in this case, they are
@@ -355,7 +355,7 @@ is omitted from the `lollypops.tasks` list.
 ### Debugging
 
 lollypops hides the executed commands in the default output. To enable full
-logging use the `--verbose` flag which is passed to go-task. 
+logging use the `--verbose` flag which is passed to go-task.
 
 ### Contributing
 
