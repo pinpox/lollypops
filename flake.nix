@@ -98,9 +98,9 @@
                         REMOTE_USER = ''{{default "${deployment.ssh.user}" .LP_REMOTE_USER}}'';
                         REMOTE_HOST = ''{{default "${deployment.ssh.host}" .LP_REMOTE_HOST}}'';
                         REMOTE_COMMAND = ''{{default "${deployment.ssh.command}" .LP_REMOTE_COMMAND}}'';
-                        REMOTE_SSH_OPTS = ''{{default "${pkgs.lib.concatStrings deployment.ssh.opts}" .LP_REMOTE_SSH_OPTS}}'';
+                        REMOTE_SSH_OPTS = ''{{default "${pkgs.lib.concatStringsSep " " deployment.ssh.opts}" .LP_REMOTE_SSH_OPTS}}'';
                         REMOTE_SUDO_COMMAND = ''{{default "${deployment.sudo.command}" .LP_REMOTE_SUDO_COMMAND}}'';
-                        REMOTE_SUDO_OPTS = ''{{default "${pkgs.lib.concatStrings deployment.sudo.opts}" .LP_REMOTE_SUDO_OPTS}}'';
+                        REMOTE_SUDO_OPTS = ''{{default "${pkgs.lib.concatStringsSep " " deployment.sudo.opts}" .LP_REMOTE_SUDO_OPTS}}'';
                         REBUILD_ACTION = ''{{default "switch" .REBUILD_ACTION}}'';
                         REMOTE_CONFIG_DIR = deployment.config-dir;
                         LOCAL_FLAKE_SOURCE = configFlake;
