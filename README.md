@@ -85,6 +85,31 @@ rebuilding step without setting the complete deployment in motion.
 
 There is also a special task called `all`, which will deploy all hosts.
 
+### Groups
+
+Lollypops supports organizing hosts into groups for batch deployment operations. Hosts can be assigned to groups using the `lollypops.deployment.group` option in their configuration.
+
+**Group Configuration:**
+```nix
+lollypops.deployment.group = "webservers";
+```
+
+If not specified, hosts are placed in the "default" group.
+
+**Group Deployment:**
+```sh
+# Deploy all hosts in the "webservers" group
+nix run '.' -- webservers
+
+# Deploy multiple groups in parallel
+nix run '.' -- -p webservers databases
+
+# List all tasks (including group tasks)
+nix run '.' -- --list-all
+```
+
+Groups appear as tasks in the task list and depend on all individual host tasks within the group.
+
 Lastly you can run multiple tasks in parallel by using the `--parallel flag`
 (alias `-p`) and specifying multiple tasks. Keep in mind that dependencies are
 run in parallel per default in go-task.
