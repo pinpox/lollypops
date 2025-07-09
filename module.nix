@@ -71,7 +71,13 @@ in
       default-dir = mkOption {
         type = types.str;
         default = "/var/src/lollypops-secrets";
-        description = "Path to place the secrets on the remote host if no alternative is specified";
+        example = "/run/lollypops-secrets";
+        description = ''
+          Path to place the secrets on the remote host if no alternative is specified.
+
+          You can use a path under `/run/`, like `/run/lollypops-secrets`, if you want
+          the secrets to be volatile and not persist across reboots.
+        '';
       };
 
       files = mkOption {
