@@ -140,11 +140,11 @@
 
                                     # Copy file
                                     ''
-                                      ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
+                                      secret="$(${x.cmd})"
+                                      test $? -eq 0 || (echo "Failed to obtain secret" && exit $?)
+                                      echo "$secret" | {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
                                       "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
-                                      install -m 700 /dev/null ${path}; \
-                                      ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
-                                      tee ${path} > /dev/null"
+                                      install -m 700 /dev/stdin ${path}"
                                     ''
 
                                     # Set group and owner
