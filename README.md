@@ -272,7 +272,7 @@ to access the Nix daemon. This is the default in NixOS.
 ### Secrets
 
 Secrets are specified as attribute set under `lollypops.secrets.files`. All
-parameters are optional and can be omitted except the name. In it's default
+parameters are optional and can be omitted. In it's default
 configuration `pass` will be used to search for the secret placing it in
 `/var/src/lollypops-secrets/secretname` with permissions `0400` owned by `root:root`.
 
