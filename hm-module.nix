@@ -48,6 +48,7 @@ let
   });
 in
 {
+  key = "github:pinpox/lollypops#hmModule";
 
   options.lollypops = {
 

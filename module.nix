@@ -57,6 +57,7 @@ let
   });
 in
 {
+  key = "github:pinpox/lollypops#nixosModules.default";
 
   options.lollypops = {
 
