@@ -170,7 +170,7 @@ A complete minimal example:
       host1 = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          lollypops.nixosModules.lollypops
+          lollypops.nixosModules.default
           ./configuration1.nix
         ];
       };
@@ -178,13 +178,13 @@ A complete minimal example:
       host2 = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          lollypops.nixosModules.lollypops
+          lollypops.nixosModules.default
           ./configuration2.nix
         ];
       };
     };
 
-    apps."x86_64-linux".default = lollypops.apps."x86_64-linux".default { configFlake = self; };
+    packages.x86_64-linux.lollypops = lollypops.packages.x86_64-linux.default.override { configFlake = self; };
   };
 }
 ```
@@ -193,7 +193,7 @@ With this you are ready to start using lollypops. The above already should allow
 you to list the tasks for two hosts with `--list-all`
 
 ```sh
-nix run '.' --show-trace -- --list-all
+nix run '.#lollypops' --show-trace -- --list-all
 task: Available tasks for this project:
 * host1:
 * host1:check-vars:
@@ -257,7 +257,7 @@ dependencies, but may be suited in different cases. Use the
    by nix instead of being uploaded directly from the local machine to the
    remote. It requires the remote machine to be able to access all flake inputs
    that, e.g. private repositories which may be required for the build.
-2. `archvie`: This method uses [nix flake
+2. `archive`: This method uses [nix flake
    archive](https://nixos.org/manual/nix/stable/command-ref/new-cli/nix3-flake-archive)
    to copy the flake **and** it's inputs to the remote. Everything will be
    copied from the local machine to the remote. This ensures that everything
@@ -320,10 +320,10 @@ If you are using home-manager, you may want to use secrets in your home
 configuration as well. For this, lollypops provides a separate home-manager
 module that can be imported to enable support for user-specific secrets.
 
-In your home-manager configuration import the `hmModule` provided by the flake:
+In your home-manager configuration import the `homeModules.default` provided by the flake:
 
 ```nix
-imports = [ lollypops.hmModule ];
+imports = [ lollypops.homeModules.default ];
 ```
 
 This allows specifying secrets in the same way as the system-wide secrets. For
