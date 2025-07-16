@@ -143,6 +143,21 @@ desired action, e.g.
 REBUILD_ACTION=dry-activate nix run '.' -- -p ahorn birne
 ```
 
+### Automatic login
+
+You can reuse your SSH connection parameters to log in automatically:
+
+```sh
+# Open an interactive SSH session to the host
+nix run --impure .#nixosConfigurations.your-host.config.lollypops.ssh.login
+
+# Run a command in the remote host, as sudo if enabled
+nix run --impure .#nixosConfigurations.your-host.config.lollypops.ssh.run -- whoami
+```
+
+Notice that `--impure` is only required if your local and remote hosts have
+different architectures.
+
 ## Configuration
 
 Add lollypops to your flake's inputs as you would for any dependency and import
