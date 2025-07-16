@@ -7,6 +7,11 @@
 let
   inherit (lib) mkOption types;
   cfg = config.lollypops.deployment;
+  # Pure evaluation will assume that local and remote hosts share the same system
+  currentSystem = builtins.currentSystem or pkgs.system;
+  currentPkgs = if (pkgs.system == currentSystem) then pkgs else import pkgs.path {
+    system = currentSystem;
+  };
 in
 {
   key = "github:pinpox/lollypops#modules.nixos.deployment";
@@ -84,11 +89,10 @@ in
 
       opts = mkOption {
         type = types.listOf types.str;
-        default = lib.optionals (cfg.ssh.user != "") [
-          "-l"
-          cfg.ssh.user
-        ];
         example = [ "-A" ];
+        defaultText = lib.literalExpression ''
+          lib.optionals (cfg.ssh.user != null) ["-l" cfg.ssh.user]
+        '';
         description = "Options to pass to the configured SSH command";
       };
 
@@ -99,8 +103,7 @@ in
       };
 
       user = mkOption {
-        type = types.str;
-        default = "";
+        type = types.nullOr types.str;
         description = ''
           Remote user to deploy as.
 
@@ -109,9 +112,11 @@ in
       };
 
       login = mkOption {
-        type = types.str;
+        type = types.package;
         readOnly = true;
-        default = "${cfg.ssh.command} ${pkgs.lib.concatMapStringsSep " " lib.escapeShellArg cfg.ssh.opts} ${lib.escapeShellArg cfg.ssh.host}";
+        default = currentPkgs.writeShellScriptBin "lollypops-login" ''
+            exec ${cfg.ssh.command} ${pkgs.lib.concatStringsSep " " cfg.ssh.opts} ${cfg.ssh.host} "$@"
+          '';
         description = ''
           SSH login command, combining the SSH binary, options and host.
 
@@ -119,16 +124,35 @@ in
           to connect to the remote server interactively, e.g.:
 
           ```shell
-          nix run .#nixosConfigurations.<hostName>.lollypops.deployment.ssh.login
+          $ nix run --impure .#nixosConfigurations.<hostName>.config.lollypops.deployment.ssh.login -- hostname
+          <hostName>
           ```
         '';
       };
 
       run = mkOption {
-        type = types.str;
-        default = "${cfg.ssh.login} -- ${cfg.ssh.command}";
-        description = "Full command to run on the remote server";
+        type = types.package;
+        default = currentPkgs.writeShellScriptBin "lollypops-run" ''
+        exec ${cfg.ssh.login}/bin/lollypops-login ${lib.optionalString cfg.sudo.enable "${cfg.sudo.command} ${lib.concatStringsSep " " cfg.sudo.opts}"} "$@"
+          '';
+        description = ''
+          Command to run on the remote host, combining the SSH login command and
+          optional sudo command.
+
+          This is used to run commands on the remote server. Also you can use it
+          to run commands on the remote server, e.g.:
+
+          ```shell
+          $ nix run --impure .#nixosConfigurations.<hostName>.config.lollypops.deployment.ssh.run -- whoami
+          root
+          ```
+        '';
       };
     };
+  };
+
+  config.lollypops.deployment = {
+    # Set login automatically as a flag
+    ssh.opts = lib.optionals (cfg.ssh.user != null) ["-l" cfg.ssh.user];
   };
 }
