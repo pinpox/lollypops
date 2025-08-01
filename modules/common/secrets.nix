@@ -20,11 +20,18 @@ let
           defaultText = "<name>";
         };
 
+        vault-name = mkOption {
+          type = types.str;
+          default = lib.concatStrings [cfg.secrets.cmd-name-prefix config.name];
+          description = "Name of the secret in the vault";
+          defaultText = "<cmd-name-prefix><name>";
+        };
+
         cmd = mkOption {
           type = types.str;
-          default = "${cfg.secrets.default-cmd} ${cfg.secrets.cmd-name-prefix}${config.name}";
+          default = "${cfg.secrets.default-cmd} ${config.vault-name}";
           description = "Command to print the secret. E.g. `cat mysecretfile`";
-          defaultText = "<default-cmd> <cmd-name-prefix><name>";
+          defaultText = "<default-cmd> <vault-name>";
         };
 
         path = mkOption {
