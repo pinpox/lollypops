@@ -9,9 +9,13 @@ let
   cfg = config.lollypops.deployment;
   # Pure evaluation will assume that local and remote hosts share the same system
   currentSystem = builtins.currentSystem or pkgs.system;
-  currentPkgs = if (pkgs.system == currentSystem) then pkgs else import pkgs.path {
-    system = currentSystem;
-  };
+  currentPkgs =
+    if (pkgs.system == currentSystem) then
+      pkgs
+    else
+      import pkgs.path {
+        system = currentSystem;
+      };
 in
 {
   key = "github:pinpox/lollypops#modules.nixos.deployment";
@@ -104,10 +108,12 @@ in
 
       user = mkOption {
         type = types.nullOr types.str;
+        default = null;
         description = ''
           Remote user to deploy as.
 
-          Leave empty to use the current user.
+          Leave empty to try to login remotely with a user named like the
+          current local user.
         '';
       };
 
@@ -115,8 +121,8 @@ in
         type = types.package;
         readOnly = true;
         default = currentPkgs.writeShellScriptBin "lollypops-login" ''
-            exec ${cfg.ssh.command} ${pkgs.lib.concatStringsSep " " cfg.ssh.opts} ${cfg.ssh.host} "$@"
-          '';
+          exec ${cfg.ssh.command} ${pkgs.lib.concatStringsSep " " cfg.ssh.opts} ${cfg.ssh.host} "$@"
+        '';
         description = ''
           SSH login command, combining the SSH binary, options and host.
 
@@ -133,8 +139,8 @@ in
       run = mkOption {
         type = types.package;
         default = currentPkgs.writeShellScriptBin "lollypops-run" ''
-        exec ${cfg.ssh.login}/bin/lollypops-login ${lib.optionalString cfg.sudo.enable "${cfg.sudo.command} ${lib.concatStringsSep " " cfg.sudo.opts}"} "$@"
-          '';
+          exec ${cfg.ssh.login}/bin/lollypops-login ${lib.optionalString cfg.sudo.enable "${cfg.sudo.command} ${lib.concatStringsSep " " cfg.sudo.opts}"} "$@"
+        '';
         description = ''
           Command to run on the remote host, combining the SSH login command and
           optional sudo command.
@@ -153,6 +159,9 @@ in
 
   config.lollypops.deployment = {
     # Set login automatically as a flag
-    ssh.opts = lib.optionals (cfg.ssh.user != null) ["-l" cfg.ssh.user];
+    ssh.opts = lib.optionals (cfg.ssh.user != null) [
+      "-l"
+      cfg.ssh.user
+    ];
   };
 }
