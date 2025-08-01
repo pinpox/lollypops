@@ -7,6 +7,7 @@
   ...
 }:
 let
+  inherit (pkgs) lib;
   # Build steps for all secrets of all users
   mkSeclistUser =
     homeUsers:
@@ -68,7 +69,6 @@ let
           let
             useSudo = hostConfig.config.lollypops.deployment.sudo.enable;
           in
-          with pkgs.lib;
           {
 
             check-vars.preconditions = [
@@ -82,11 +82,11 @@ let
               let
                 mkSeclist =
                   config:
-                  lists.flatten (
+                  lib.flatten (
                     map (
                       x:
                       let
-                        path = escapeShellArg x.path;
+                        path = lib.escapeShellArg x.path;
                       in
                       [
                         "echo 'Deploying ${x.name} to ${path}'"
@@ -94,22 +94,22 @@ let
                         # Create parent directory if it does not exist
                         ''
                           {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                          'umask 076; ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} mkdir -p "$(dirname ${path})"'
+                          'umask 076; ${lib.optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}} "} mkdir -p "$(dirname ${path})"'
                         ''
 
                         # Copy file
                         ''
                           ${x.cmd} | {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                          "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                          "${lib.optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                           install -m 700 /dev/null ${path}; \
-                          ${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                          ${lib.optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                           tee ${path} > /dev/null"
                         ''
 
                         # Set group and owner
                         ''
                           {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                          "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
+                          "${lib.optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} \
                           chown ${x.owner}:${x.group-name} ${path}"
                         ''
                       ]
@@ -142,7 +142,7 @@ let
               };
 
             rebuild = {
-              dir = self;
+              dir = flake;
 
               desc = "Rebuild configuration of: ${hostName}";
               deps = [ "check-vars" ];
@@ -150,15 +150,15 @@ let
                 (
                   if hostConfig.config.lollypops.deployment.local-evaluation then
                     ''
-                      ${optionalString useSudo ''NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}"''} nixos-rebuild {{.REBUILD_ACTION}} \
+                      ${lib.optionalString useSudo ''NIX_SSHOPTS="{{.REMOTE_SSH_OPTS}}"''} nixos-rebuild {{.REBUILD_ACTION}} \
                         --flake '{{.LOCAL_FLAKE_SOURCE}}#{{.HOSTNAME}}' \
                         --target-host {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                        ${optionalString useSudo "--use-remote-sudo"}
+                        ${lib.optionalString useSudo "--use-remote-sudo"}
                     ''
                   else
                     ''
                       {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                        '${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
+                        '${lib.optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} nixos-rebuild {{.REBUILD_ACTION}} \
                         --flake "$(readlink -f {{.REMOTE_CONFIG_DIR}}/flake)#{{.HOSTNAME}}"'
                     ''
                 )
@@ -190,7 +190,7 @@ let
                 )
                 ''
                   {{.REMOTE_COMMAND}} {{.REMOTE_SSH_OPTS}} {{.REMOTE_USER}}@{{.REMOTE_HOST}} \
-                    "${optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -sfn {{.LOCAL_FLAKE_SOURCE}} {{.REMOTE_CONFIG_DIR}}/flake"
+                    "${lib.optionalString useSudo "{{.REMOTE_SUDO_COMMAND}} {{.REMOTE_SUDO_OPTS}}"} ln -sfn {{.LOCAL_FLAKE_SOURCE}} {{.REMOTE_CONFIG_DIR}}/flake"
                 ''
               ];
             };
