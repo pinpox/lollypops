@@ -33,7 +33,7 @@
           "ssh/keys/${user}.pub".source = ./keys/${user}.pub;
           "ssh/keys/${user}" = {
             inherit user;
-            mode = "u=rw,go=";
+            mode = "u=rwX,go=";
             source = ./keys/${user};
           };
         }
