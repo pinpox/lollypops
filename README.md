@@ -49,7 +49,7 @@ or consult it's [documentation](https://taskfile.dev/usage/)
 
 ```sh
 # List all Tasks
-nix run '.' -- --list-all
+nix run '.#lollypops' -- --list-all
 * ahorn:
 * ahorn:check-vars:
 * ahorn:deploy-flake:
@@ -68,7 +68,7 @@ completely (run all tasks for this host) run:
 
 ```sh
 # Run all tasks for a host
-nix run '.' -- ahorn
+nix run '.#lollypops' -- ahorn
 ```
 
 This would run the tasks `ahorn:check-vars` `ahorn:deploy-flake`
@@ -77,7 +77,7 @@ subtask e.g.:
 
 ```sh
 # Run specific task for a host
-nix run '.' -- ahorn:deploy-secrets
+nix run '.#lollypops' -- ahorn:deploy-secrets
 ```
 
 This can be useful to quickly (re-)deploy a single secret or just run the
@@ -99,13 +99,13 @@ If not specified, hosts are placed in the "default" group.
 **Group Deployment:**
 ```sh
 # Deploy all hosts in the "webservers" group
-nix run '.' -- webservers
+nix run '.#lollypops' -- webservers
 
 # Deploy multiple groups in parallel
-nix run '.' -- -p webservers databases
+nix run '.#lollypops' -- -p webservers databases
 
 # List all tasks (including group tasks)
-nix run '.' -- --list-all
+nix run '.#lollypops' -- --list-all
 ```
 
 Groups appear as tasks in the task list and depend on all individual host tasks within the group.
@@ -116,7 +116,7 @@ run in parallel per default in go-task.
 
 ```sh
 # Provision ahorn and birne in parallel
-nix run '.' -- -p ahorn birne
+nix run '.#lollypops' -- -p ahorn birne
 
 [birne:deploy-flake] Deploying flake to: kartoffel
 [ahorn:deploy-flake] Deploying flake to: ahorn
@@ -140,7 +140,7 @@ configuration as part of the deployment. It is possible to override the default
 desired action, e.g.
 
 ```sh
-REBUILD_ACTION=dry-activate nix run '.' -- -p ahorn birne
+REBUILD_ACTION=dry-activate nix run '.#lollypops' -- -p ahorn birne
 ```
 
 ### Automatic login
@@ -233,7 +233,7 @@ configure... you guessed it, secrets.
 ### Deployment
 
 Specify how and where to deploy. The default values may be sufficient here in
-a lot of cases.
+a lot of cases. 
 
 ```nix
 lollypops.deployment = {
