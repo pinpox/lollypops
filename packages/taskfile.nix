@@ -127,17 +127,9 @@ let
                   ]
                   ++ mkSeclist hostConfig.config
                   ++ (
-                    # Check for home-manager
-                    if builtins.hasAttr "home-manager" hostConfig.config then
-                      (
-                        # Check for lollypops homeModules.default
-                        if builtins.hasAttr "lollypops" hostConfig.config.home-manager then
-                          mkSeclistUser hostConfig.config.home-manager.users
-                        else
-                          [ ]
-                      )
-                    else
-                      [ ]
+                    lib.optionals
+                    (hostConfig.config ? "home-manager" && builtins.any (user: user ? "lollypops")
+                    (builtins.attrValues hostConfig.config.home-manager.users)) (mkSeclistUser hostConfig.config.home-manager.users)
                   );
               };
 
