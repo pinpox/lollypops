@@ -20,7 +20,7 @@ pkgs.testers.runNixOSTest {
       imports = [ flake.modules.test-nixos.ssh-server ];
       services.openssh.enable = true;
       lollypops.deployment.ssh.opts = [
-        "-i/etc/ssh/keys/$USER"
+        "-i$HOME/.ssh/id_rsa"
       ];
     };
   };
