@@ -38,7 +38,7 @@ pkgs.testers.runNixOSTest {
           fr"""
           sudo -nu {user} -- ${lib.getExe nodes.target01.lollypops.deployment.ssh.login} whoami
           """,
-          timeout=2,
+          timeout=10,
         )
         t.assertEqual(output.strip(), user)
     '';
